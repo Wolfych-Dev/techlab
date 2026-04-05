@@ -6,213 +6,291 @@
 <title>tECHLAB</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+
+/* ── TOKENS ─────────────────────────────────────────────────────────────── */
 :root {
-  --bg: #030712; --panel: #0d1b2a; --panel2: #112240;
-  --accent: #00d4ff; --accent2: #7c3aed; --wire-on: #00ff88;
-  --danger: #ff3b3b; --warn: #ffbe0b; --text: #e2f4ff;
-  --muted: #4a7a99; --border: #1e3a5f; --grid: #0d1b2a;
-  --glow: 0 0 12px var(--accent); --glow2: 0 0 20px var(--wire-on);
+  --bg:#030712; --panel:#0d1b2a; --panel2:#112240;
+  --accent:#00d4ff; --accent2:#7c3aed; --wire-on:#00ff88;
+  --danger:#ff3b3b; --warn:#ffbe0b; --text:#e2f4ff;
+  --muted:#4a7a99; --border:#1e3a5f; --grid:#0d1b2a;
+  --glow:0 0 12px var(--accent); --glow2:0 0 20px var(--wire-on);
+  --hh:48px;   /* header height – overridden per breakpoint */
+  --sh:160px;  /* shelf  height */
 }
-[data-theme="light"] {
-  --bg: #f0f4f8; --panel: #dde8f0; --panel2: #c8d9e8;
-  --accent: #0077aa; --accent2: #6d28d9; --wire-on: #007a3d;
-  --danger: #cc1111; --warn: #c08000; --text: #0d1b2a;
-  --muted: #446688; --border: #a0b8cc; --grid: #d0dce8;
-}
-[data-theme="retro"] {
-  --bg: #0a0800; --panel: #1a1500; --panel2: #251f00;
-  --accent: #ffcc00; --accent2: #ff6600; --wire-on: #aaff00;
-  --danger: #ff2200; --warn: #ff9900; --text: #ffe080;
-  --muted: #806040; --border: #403010; --grid: #141000;
-}
-[data-theme="neon"] {
-  --bg: #0a000f; --panel: #140020; --panel2: #1e0030;
-  --accent: #ff00ff; --accent2: #00ffff; --wire-on: #ff00aa;
-  --danger: #ff3300; --warn: #ffaa00; --text: #ffccff;
-  --muted: #884488; --border: #330055; --grid: #0f000f;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-user-select: none; user-select: none; }
+[data-theme="light"]  { --bg:#f0f4f8;--panel:#dde8f0;--panel2:#c8d9e8;--accent:#0077aa;--accent2:#6d28d9;--wire-on:#007a3d;--danger:#cc1111;--text:#0d1b2a;--muted:#446688;--border:#a0b8cc;--grid:#d0dce8; }
+[data-theme="retro"]  { --bg:#0a0800;--panel:#1a1500;--panel2:#251f00;--accent:#ffcc00;--accent2:#ff6600;--wire-on:#aaff00;--danger:#ff2200;--text:#ffe080;--muted:#806040;--border:#403010;--grid:#141000; }
+[data-theme="neon"]   { --bg:#0a000f;--panel:#140020;--panel2:#1e0030;--accent:#ff00ff;--accent2:#00ffff;--wire-on:#ff00aa;--danger:#ff3300;--text:#ffccff;--muted:#884488;--border:#330055;--grid:#0f000f; }
+
+/* ── RESET ───────────────────────────────────────────────────────────────── */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0;
+  -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; }
+
 body {
-  background: var(--bg); color: var(--text);
-  font-family: 'Rajdhani', system-ui, sans-serif;
-  height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
+  background:var(--bg); color:var(--text);
+  font-family:'Rajdhani',system-ui,sans-serif;
+  height:100dvh; display:flex; flex-direction:column; overflow:hidden;
+  -webkit-font-smoothing:antialiased;
 }
 
+/* ── HEADER ─────────────────────────────────────────────────────────────── */
 .header {
-  background: var(--panel); padding: 8px; gap: 4px;
-  display: flex; flex-wrap: wrap; align-items: center;
-  border-bottom: 2px solid var(--border); z-index: 1000;
-  min-height: 52px;
+  background:var(--panel); border-bottom:2px solid var(--border);
+  display:flex; align-items:center; gap:4px; padding:0 8px;
+  height:var(--hh); flex-shrink:0; z-index:1000;
+  overflow-x:auto; overflow-y:hidden;
+  scrollbar-width:none; -webkit-overflow-scrolling:touch;
 }
-.hgroup { display: flex; gap: 4px; }
+.header::-webkit-scrollbar { display:none; }
+.logo {
+  font-family:'Share Tech Mono',monospace; color:var(--accent);
+  font-size:clamp(10px,2.5vw,14px); font-weight:bold;
+  letter-spacing:1px; white-space:nowrap; flex-shrink:0; padding-right:4px;
+}
+.hgroup { display:flex; gap:3px; flex-shrink:0; }
+.header-gap { flex:1; }
 .btn {
-  background: var(--panel2); border: 1px solid var(--border); color: var(--muted);
-  padding: 8px 10px; border-radius: 8px; font-size: 10px; font-weight: 700;
-  font-family: 'Rajdhani', sans-serif; letter-spacing: 0.5px; cursor: pointer;
-  transition: all 0.15s; white-space: nowrap; min-height: 36px; display:flex; align-items:center; justify-content:center;
+  background:var(--panel2); border:1px solid var(--border); color:var(--muted);
+  border-radius:8px; font-family:'Rajdhani',sans-serif; font-weight:700;
+  white-space:nowrap; cursor:pointer; transition:all .15s;
+  display:flex; align-items:center; justify-content:center; gap:3px;
+  /* fluid sizing: tall enough on phones, compact on desktop */
+  height:clamp(34px,5.5vw,40px);
+  padding:0 clamp(5px,1.5vw,12px);
+  font-size:clamp(8px,1.8vw,11px);
+  min-width:clamp(30px,5vw,34px);
 }
-.btn:hover { border-color: var(--accent); color: var(--text); }
-.btn.active { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: var(--glow); }
-.btn-run { background: #003a1a; border-color: var(--wire-on); color: var(--wire-on); }
-.btn-run.on { background: var(--wire-on); color: #000; box-shadow: var(--glow2); }
-.btn-stop { background: #3a0000; border-color: var(--danger); color: var(--danger); }
-.logo { font-family: 'Share Tech Mono', monospace; color: var(--accent); font-size: 13px; font-weight: bold; padding: 0 8px; letter-spacing:1px; }
-.info-bar { font-family: 'Share Tech Mono', monospace; font-size: 9px; color: var(--muted); display:flex; gap:12px; align-items:center; padding: 0 6px; }
-.sim-indicator { width:8px; height:8px; border-radius:50%; background:var(--muted); transition:all 0.3s; }
-.sim-indicator.on { background: var(--wire-on); box-shadow:0 0 8px var(--wire-on); animation: pulse 1s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.btn:hover  { border-color:var(--accent); color:var(--text); }
+.btn.active { background:var(--accent); color:#000; border-color:var(--accent); box-shadow:var(--glow); }
+.btn-run    { background:#003a1a; border-color:var(--wire-on); color:var(--wire-on); min-width:clamp(64px,10vw,80px); white-space:nowrap; }
+.btn-run.on { background:var(--wire-on); color:#000; box-shadow:var(--glow2); }
+.btn-stop   { background:#3a0000; border-color:var(--danger); color:var(--danger); }
 
+.info-bar {
+  font-family:'Share Tech Mono',monospace; font-size:clamp(7px,1.5vw,10px);
+  color:var(--muted); display:flex; gap:8px; align-items:center;
+  flex-shrink:0; white-space:nowrap;
+}
+.sim-indicator { width:8px; height:8px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+.sim-indicator.on { background:var(--wire-on); box-shadow:0 0 8px var(--wire-on); animation:pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
 
-#viewport { flex: 1; position: relative; overflow: hidden; touch-action: none; }
-canvas { display: block; width: 100%; height: 100%; }
+/* ── CANVAS ──────────────────────────────────────────────────────────────── */
+#viewport { flex:1; position:relative; overflow:hidden; touch-action:none; min-height:0; }
+canvas#mc  { display:block; width:100%; height:100%; }
 
-
+/* ── PROP EDITOR ─────────────────────────────────────────────────────────── */
 #prop-editor {
-  position: absolute; display: none; background: var(--panel);
-  border: 2px solid var(--accent); border-radius: 16px; padding: 16px;
-  width: 280px; z-index: 3000; box-shadow: 0 10px 50px #000a, var(--glow);
-  font-family: 'Rajdhani', sans-serif;
-  max-height: calc(100dvh - 52px - 185px - 20px);
-  overflow-y: auto; overflow-x: hidden;
-  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  position:fixed; display:none; background:var(--panel);
+  border:2px solid var(--accent); border-radius:16px; padding:16px;
+  width:clamp(240px,88vw,290px); z-index:3000;
+  box-shadow:0 10px 50px #000a,var(--glow);
+  font-family:'Rajdhani',sans-serif;
+  max-height:calc(100dvh - var(--hh,52px) - var(--sh,160px) - 20px);
+  overflow-y:auto; overflow-x:hidden;
+  scrollbar-width:thin; scrollbar-color:var(--border) transparent;
+  -webkit-overflow-scrolling:touch;
 }
-.ed-title { color: var(--accent); font-size: 15px; font-weight: 700; margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center; }
-.prop-row { margin-bottom: 10px; }
-.prop-row label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; font-weight: 600; letter-spacing:0.5px; }
-.prop-row .val { font-family:'Share Tech Mono',monospace; color: var(--accent); font-size:11px; }
-.prop-row input[type=range] { width: 100%; accent-color: var(--accent); cursor:pointer; }
-.prop-row input[type=color] { width: 100%; height: 36px; border-radius:6px; border:1px solid var(--border); cursor:pointer; }
-.prop-row input[type=text], .prop-row input[type=number] {
-  width:100%; background:var(--panel2); border:1px solid var(--border); color:var(--text);
-  padding:6px 8px; border-radius:6px; font-family:'Share Tech Mono',monospace; font-size:12px;
-}
-.prop-row select {
-  width:100%; background:var(--panel2); border:1px solid var(--border); color:var(--text);
-  padding:6px 8px; border-radius:6px; font-family:'Rajdhani',sans-serif; font-size:12px;
-}
+.ed-title  { color:var(--accent); font-size:15px; font-weight:700; margin-bottom:12px;
+             display:flex; justify-content:space-between; align-items:center; }
+.prop-row  { margin-bottom:10px; }
+.prop-row label { display:block; font-size:11px; color:var(--muted); margin-bottom:3px;
+                  font-weight:600; letter-spacing:.5px; }
+.prop-row .val  { font-family:'Share Tech Mono',monospace; color:var(--accent); font-size:11px; }
+.prop-row input[type=range]  { width:100%; accent-color:var(--accent); cursor:pointer; }
+.prop-row input[type=color]  { width:100%; height:36px; border-radius:6px; border:1px solid var(--border); }
+.prop-row input[type=text],
+.prop-row input[type=number] { width:100%; background:var(--panel2); border:1px solid var(--border);
+                                color:var(--text); padding:6px 8px; border-radius:6px;
+                                font-family:'Share Tech Mono',monospace; font-size:12px; }
+.prop-row select { width:100%; background:var(--panel2); border:1px solid var(--border);
+                   color:var(--text); padding:6px 8px; border-radius:6px;
+                   font-family:'Rajdhani',sans-serif; font-size:12px; }
 .ed-actions { display:flex; gap:6px; margin-top:12px; }
-.ed-actions button { flex:1; padding:10px; border-radius:8px; border:none; font-weight:700; font-size:14px; cursor:pointer; font-family:'Rajdhani',sans-serif; }
-.ed-close { position:absolute; top:10px; right:10px; background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; }
+.ed-actions button { flex:1; padding:10px; border-radius:8px; border:none;
+                     font-weight:700; font-size:14px; cursor:pointer;
+                     font-family:'Rajdhani',sans-serif; min-height:40px; }
+.ed-close   { background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer; }
 
+/* ── METERS ──────────────────────────────────────────────────────────────── */
+#meters { position:absolute; top:8px; right:8px; z-index:2000;
+          display:flex; flex-direction:column; gap:4px; pointer-events:none; }
+.meter-card { background:var(--panel); border:1px solid var(--border); border-radius:10px;
+              padding:6px 10px; min-width:90px; font-family:'Share Tech Mono',monospace;
+              pointer-events:all; }
+.meter-label { font-size:8px; color:var(--muted); letter-spacing:1px; }
+.meter-val   { font-size:clamp(14px,3vw,20px); color:var(--accent); font-weight:bold; line-height:1.2; }
+.meter-unit  { font-size:8px; color:var(--muted); }
 
-#meters {
-  position: absolute; top: 60px; right: 10px; z-index: 2000;
-  display: flex; flex-direction: column; gap: 6px; pointer-events: none;
-}
-.meter-card {
-  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-  padding: 8px 12px; min-width: 120px;
-  font-family: 'Share Tech Mono', monospace;
-  pointer-events: all;
-}
-.meter-label { font-size: 9px; color: var(--muted); letter-spacing:1px; }
-.meter-val { font-size: 20px; color: var(--accent); font-weight: bold; line-height:1.2; }
-.meter-unit { font-size: 9px; color: var(--muted); }
-
-
+/* ── OSCILLOSCOPE ────────────────────────────────────────────────────────── */
 #oscillo {
-  position: absolute; bottom: 195px; left: 10px; z-index: 2000;
-  background: #00100a; border: 2px solid #00ff88; border-radius: 12px;
-  width: 240px; height: 120px; display: none; overflow: hidden;
+  position:absolute; bottom:8px; left:8px; z-index:2000;
+  background:#00100a; border:2px solid #00ff88; border-radius:12px;
+  width:clamp(160px,40vw,240px); height:clamp(80px,15vh,120px);
+  display:none; overflow:hidden;
 }
-#oscillo canvas { width:100%; height:100%; }
-.oscillo-label { position:absolute; top:4px; left:8px; font-family:'Share Tech Mono',monospace; font-size:8px; color:#00ff88; }
+#oscillo canvas    { width:100%; height:100%; }
+.oscillo-label     { position:absolute; top:3px; left:6px;
+                     font-family:'Share Tech Mono',monospace; font-size:7px; color:#00ff88; }
 
-
+/* ── SHELF ───────────────────────────────────────────────────────────────── */
 .shelf {
-  height: 185px; background: var(--panel); border-top: 2px solid var(--border);
-  display: flex; flex-direction: column; z-index: 1000; flex-shrink:0;
+  height:var(--sh); background:var(--panel);
+  border-top:2px solid var(--border);
+  display:flex; flex-direction:column; z-index:1000; flex-shrink:0;
 }
 .filter-bar {
-  display: flex; overflow-x: auto; padding: 6px 8px; gap: 4px;
-  background: var(--bg); border-bottom: 1px solid var(--border);
-  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  display:flex; overflow-x:auto; padding:5px 8px; gap:4px;
+  background:var(--bg); border-bottom:1px solid var(--border);
+  scrollbar-width:none; -webkit-overflow-scrolling:touch; flex-shrink:0;
 }
 .filter-bar::-webkit-scrollbar { display:none; }
 .f-btn {
-  padding: 5px 12px; background: var(--panel2); border: 1px solid var(--border);
-  border-radius: 20px; font-size: 9px; white-space: nowrap; color: var(--muted);
-  cursor:pointer; font-family:'Rajdhani',sans-serif; font-weight:600; letter-spacing:0.5px;
-  transition: all 0.15s;
+  padding:4px 10px; background:var(--panel2); border:1px solid var(--border);
+  border-radius:20px; font-size:clamp(8px,1.8vw,10px); white-space:nowrap;
+  color:var(--muted); cursor:pointer; font-family:'Rajdhani',sans-serif;
+  font-weight:600; transition:all .15s; flex-shrink:0;
 }
-.f-btn:hover { border-color: var(--accent); color: var(--text); }
-.f-btn.active { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+.f-btn.active { background:var(--accent2); border-color:var(--accent2); color:#fff; }
 .shelf-scroll {
-  flex: 1; display: flex; overflow-x: scroll; overflow-y: hidden;
-  padding: 10px 12px; gap: 10px; scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch; touch-action: pan-x;
-  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  flex:1; display:flex; overflow-x:scroll; overflow-y:hidden;
+  padding:8px 10px; gap:8px; scroll-snap-type:x proximity;
+  -webkit-overflow-scrolling:touch; touch-action:pan-x;
+  scrollbar-width:none;
 }
+.shelf-scroll::-webkit-scrollbar { display:none; }
 .card {
-  min-width: 86px; height: 106px; background: var(--panel2); border: 2px solid var(--border);
-  border-radius: 14px; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; flex-shrink: 0; cursor: pointer;
-  transition: all 0.15s; scroll-snap-align: start;
+  min-width:clamp(68px,18vw,86px);
+  height:clamp(80px,15vh,100px);
+  background:var(--panel2); border:2px solid var(--border);
+  border-radius:12px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; flex-shrink:0;
+  cursor:pointer; transition:all .12s; scroll-snap-align:start;
 }
-.card:hover { border-color: var(--accent); transform: translateY(-2px); }
-.card.active { border-color: var(--accent); background: #1e3a8a22; box-shadow: 0 0 14px var(--accent)44; }
-.card svg { width: 44px; height: 44px; margin-bottom: 5px; pointer-events: none; }
-.card span { font-size: 8px; text-align: center; pointer-events: none; padding: 0 4px; line-height:1.3; color:var(--muted); font-family:'Rajdhani',sans-serif; font-weight:600; }
-.card .cat-tag { font-size:7px; color:var(--accent2); letter-spacing:0.5px; margin-bottom:2px; }
+.card:active  { transform:scale(.95); }
+.card.active  { border-color:var(--accent); background:rgba(0,212,255,.08);
+                box-shadow:0 0 12px rgba(0,212,255,.3); }
+.card img     { width:clamp(30px,8vw,40px); height:clamp(30px,8vw,40px);
+                margin-bottom:4px; pointer-events:none; }
+.card span    { font-size:clamp(7px,1.6vw,8.5px); text-align:center;
+                pointer-events:none; padding:0 3px; line-height:1.3;
+                color:var(--muted); font-family:'Rajdhani',sans-serif; font-weight:600; }
+.card .cat-tag { font-size:clamp(6px,1.4vw,7.5px); color:var(--accent2);
+                 letter-spacing:.5px; margin-bottom:2px; }
 
-
+/* ── CONTEXT MENU ────────────────────────────────────────────────────────── */
 #ctx-menu {
   position:absolute; background:var(--panel); border:1px solid var(--border);
-  border-radius:10px; z-index:4000; display:none; overflow:hidden; min-width:140px;
-  box-shadow: 0 8px 30px #000a;
+  border-radius:12px; z-index:4000; display:none; overflow:hidden; min-width:150px;
+  box-shadow:0 8px 30px #000c;
 }
-.ctx-item { padding:10px 16px; font-size:12px; cursor:pointer; font-family:'Rajdhani',sans-serif; font-weight:600; display:flex; gap:8px; align-items:center; }
-.ctx-item:hover { background:var(--panel2); color:var(--accent); }
+.ctx-item { padding:clamp(10px,2.5vw,13px) 18px; font-size:clamp(12px,2.5vw,14px);
+            cursor:pointer; font-family:'Rajdhani',sans-serif; font-weight:600;
+            display:flex; gap:10px; align-items:center; }
+.ctx-item:hover  { background:var(--panel2); color:var(--accent); }
 .ctx-item.danger { color:var(--danger); }
-.ctx-item.danger:hover { background:#3a00001a; }
 
+/* ── TOOLTIP ─────────────────────────────────────────────────────────────── */
+.tooltip { position:absolute; background:#000c; color:var(--accent);
+           font-family:'Share Tech Mono',monospace; font-size:9px;
+           padding:4px 8px; border-radius:6px; z-index:5000;
+           pointer-events:none; display:none; }
 
-.tooltip { position:absolute; background:#000c; color:var(--accent); font-family:'Share Tech Mono',monospace; font-size:9px; padding:4px 8px; border-radius:6px; z-index:5000; pointer-events:none; display:none; }
-
-
-/* ===== MULTIMETER MODES ===== */
+/* ── MULTIMETER ──────────────────────────────────────────────────────────── */
 .mm-mode {
   background:var(--panel2); border:1px solid var(--border); color:var(--muted);
-  text-align:center; padding:6px 2px; border-radius:7px; cursor:pointer;
-  font-family:'Share Tech Mono',monospace; font-size:12px; font-weight:bold;
-  transition:all 0.15s;
+  text-align:center; padding:5px 2px; border-radius:6px; cursor:pointer;
+  font-family:'Share Tech Mono',monospace; font-size:11px; font-weight:bold;
+  transition:all .15s; min-height:30px; display:flex; align-items:center; justify-content:center;
 }
-.mm-mode:hover { border-color:var(--accent); color:var(--text); }
 .mm-mode.active { background:var(--accent); color:#000; border-color:var(--accent); }
-.mm-probe-btn { transition:all 0.15s; user-select:none; }
+.mm-probe-btn { transition:all .15s; }
 .mm-probe-btn:hover { filter:brightness(1.3); }
-.mm-probe-btn.active { filter:brightness(1.5); box-shadow:0 0 12px currentColor; }
 
-/* ===== WIRE MODE CURSOR ===== */
-.wire-mode { cursor: crosshair; }
-.hand-mode { cursor: grab; }
-.hand-mode.dragging { cursor: grabbing; }
+/* ── CURSOR MODES ────────────────────────────────────────────────────────── */
+.wire-mode         { cursor:crosshair; }
+.hand-mode         { cursor:grab; }
+.hand-mode.dragging{ cursor:grabbing; }
+
+/* ── RESPONSIVE: tablet (≤900px) ─────────────────────────────────────────── */
+@media (max-width:900px) {
+  :root { --hh:52px; --sh:150px; }
+  /* keep header single row with scroll */
+  .header { flex-wrap:nowrap; height:var(--hh); }
+  /* hide verbose text, keep icons on small headers */
+  .logo { font-size:11px; }
+}
+
+/* ── RESPONSIVE: phone portrait (≤600px) ─────────────────────────────────── */
+@media (max-width:600px) {
+  :root { --hh:46px; --sh:135px; }
+  .header { flex-wrap:nowrap; height:var(--hh); padding:0 6px; gap:3px; }
+  .logo   { font-size:10px; letter-spacing:.5px; }
+  .btn    { height:34px; font-size:9px; padding:0 6px; border-radius:7px; }
+  /* show only emoji on smallest buttons to save space */
+  .btn-text { display:none; }
+  .hgroup { gap:3px; }
+  .info-bar { font-size:8px; gap:4px; }
+
+  /* shelf */
+  .filter-bar { padding:4px 6px; }
+  .f-btn      { font-size:9px; padding:4px 8px; }
+  .shelf-scroll { padding:6px 8px; gap:6px; }
+
+  /* prop editor on small screens: full width, scrollable */
+  #prop-editor {
+    width:calc(100% - 12px) !important;
+    max-width:calc(100% - 12px) !important;
+    max-height:calc(100% - 12px) !important;
+    border-radius:16px;
+  }
+  #multimeter {
+    width:calc(100vw - 12px) !important;
+    left:6px !important; right:6px !important;
+    top:calc(var(--hh, 46px) + 6px) !important;
+    max-height:calc(100dvh - var(--hh, 46px) - 80px) !important;
+  }
+  /* meters smaller */
+  .meter-card { padding:4px 8px; min-width:76px; }
+  /* oscillo smaller */
+  #oscillo { width:clamp(130px,50vw,180px); height:80px; }
+  /* ctx menu bigger touch targets */
+  .ctx-item { padding:14px 16px; }
+}
+
+/* ── RESPONSIVE: landscape phone (≤ 700px wide & short) ─────────────────── */
+@media (max-width:700px) and (orientation:landscape) {
+  :root { --sh:115px; }
+  .header { flex-wrap:nowrap; height:42px; }
+  .btn    { height:30px; font-size:8px; }
+}
 </style>
 </head>
+
 <body>
 <div class="header">
   <span class="logo">tECHLAB</span>
   <div class="hgroup">
-    <div class="btn active" id="m-add" onclick="setM('add')" title="Додати компонент">ОБ'ЄКТ</div>
-    <div class="btn" id="m-wire" onclick="setM('wire')" title="Провести дріт">〰 ДРІТ</div>
-    <div class="btn" id="m-hand" onclick="setM('hand')" title="Переміщення">РУКА</div>
-    <div class="btn" id="m-del" onclick="setM('del')" title="Видалити">✂ ВИДАЛ</div>
+    <div class="btn active" id="m-add" onclick="setM('add')">📦 <span class="btn-text">ОБ'ЄКТ</span></div>
+    <div class="btn" id="m-wire" onclick="setM('wire')">〰 <span class="btn-text">ДРІТ</span></div>
+    <div class="btn" id="m-hand" onclick="setM('hand')">✋ <span class="btn-text">РУКА</span></div>
+    <div class="btn" id="m-del" onclick="setM('del')">✂ <span class="btn-text">ВИДАЛ</span></div>
   </div>
   <div class="hgroup">
-    <div class="btn" onclick="resetC()" title="Центрувати">🏠</div>
+    <div class="btn" onclick="resetC()">🏠</div>
     <div class="btn" onclick="zoomIn()">+</div>
     <div class="btn" onclick="zoomOut()">-</div>
-    <div class="btn" onclick="clearAll()">ОЧИСТ</div>
+    <div class="btn" onclick="clearAll()">🗑 <span class="btn-text">ОЧИСТ</span></div>
     <div class="btn" onclick="saveScheme()">💾</div>
     <div class="btn" onclick="loadScheme()">📂</div>
     <input type="file" id="load-file" accept=".json" style="display:none" onchange="doLoad(event)">
   </div>
   <div class="hgroup">
-    <div class="btn" onclick="toggleOscillo()">ОСЦИЛ</div>
-    <div class="btn" onclick="cycleTheme()">ТЕМА</div>
+    <div class="btn" id="btn-oscil" onclick="toggleOscillo()">📊 <span class="btn-text">ОСЦИЛ</span></div>
+    <div class="btn" id="btn-mult" onclick="toggleMultimeter()">🔌 <span class="btn-text">МУЛЬТ</span></div>
+    <div class="btn" onclick="cycleTheme()">🎨</div>
     <div class="btn" id="lang-btn" onclick="cycleLang()">UA</div>
-    <div class="btn" onclick="toggleMultimeter()">МУЛЬТ</div>
   </div>
+  <div class="header-gap"></div>
   <div class="btn btn-run" id="p-btn" onclick="toggleSim()">▶ СТАРТ</div>
   <div class="info-bar">
     <div class="sim-indicator" id="sim-dot"></div>
@@ -268,14 +346,15 @@ canvas { display: block; width: 100%; height: 100%; }
     <div class="oscillo-label">ОСЦИЛОГРАФ</div>
   </div>
 
-  <div id="multimeter" style="display:none;position:absolute;top:60px;right:10px;z-index:2500;width:226px;background:var(--panel);border:2px solid #00d4ff;border-radius:16px;padding:14px;box-shadow:0 8px 40px rgba(0,0,0,0.8);font-family:Rajdhani,sans-serif;">
-    <div style="color:#00d4ff;font-weight:700;font-size:13px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
-      <span>МУЛЬТИМЕТР</span>
-      <span onclick="document.getElementById('multimeter').style.display='none'" style="cursor:pointer;color:#4a7a99;font-size:18px;line-height:1;">✕</span>
+  <!-- ===== MULTIMETER PANEL ===== -->
+  <div id="multimeter" style="display:none;position:fixed;top:calc(var(--hh, 46px) + 6px);right:8px;z-index:2500;width:190px;max-height:calc(100dvh - var(--hh, 46px) - 70px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--panel);border:2px solid #00d4ff;border-radius:12px;padding:8px;box-shadow:0 8px 40px rgba(0,0,0,0.8);font-family:Rajdhani,sans-serif;">
+    <div style="color:#00d4ff;font-weight:700;font-size:11px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+      <span id="mm-title">⚡ МУЛЬТИМЕТР</span>
+      <span onclick="document.getElementById('multimeter').style.display='none'" style="cursor:pointer;color:#4a7a99;font-size:16px;line-height:1;">✕</span>
     </div>
 
     <!-- Mode buttons -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:10px;">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:6px;">
       <div class="mm-mode active" id="mm-btn-V" onclick="setMM('V')">V</div>
       <div class="mm-mode" id="mm-btn-A" onclick="setMM('A')">A</div>
       <div class="mm-mode" id="mm-btn-O" onclick="setMM('O')">Ω</div>
@@ -283,9 +362,9 @@ canvas { display: block; width: 100%; height: 100%; }
     </div>
 
     <!-- AC/DC toggle -->
-    <div style="display:flex;gap:4px;margin-bottom:10px;">
-      <div id="mm-ac-btn" onclick="mmToggleAC()" style="flex:1;text-align:center;padding:5px;background:var(--panel2);border:1px solid var(--border);border-radius:7px;cursor:pointer;font-size:10px;font-family:Share Tech Mono,monospace;color:var(--muted);">DC</div>
-      <select id="mm-range-sel" onchange="mmRangeChange()" style="flex:2;background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:7px;font-family:Share Tech Mono,monospace;font-size:10px;">
+    <div style="display:flex;gap:3px;margin-bottom:6px;">
+      <div id="mm-ac-btn" onclick="mmToggleAC()" style="flex:1;text-align:center;padding:3px;background:var(--panel2);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:9px;font-family:Share Tech Mono,monospace;color:var(--muted);">DC</div>
+      <select id="mm-range-sel" onchange="mmRangeChange()" style="flex:2;background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:6px;font-family:Share Tech Mono,monospace;font-size:9px;">
         <option value="auto">AUTO</option>
         <option value="200m">200мВ</option>
         <option value="2">2В</option>
@@ -295,54 +374,54 @@ canvas { display: block; width: 100%; height: 100%; }
       </select>
     </div>
 
-    <div style="background:#001408;border:2px solid #003a1a;border-radius:10px;padding:12px 10px;margin-bottom:10px;position:relative;">
-      <div id="mm-mode-lbl" style="position:absolute;top:4px;left:8px;font-family:Share Tech Mono,monospace;font-size:8px;color:#006633;letter-spacing:1px;">DC V</div>
-      <div id="mm-ac-lbl" style="position:absolute;top:4px;right:8px;font-family:Share Tech Mono,monospace;font-size:8px;color:#006633;">●DC</div>
-      <div id="mm-reading" style="font-family:Share Tech Mono,monospace;font-size:32px;color:#00ff88;text-align:center;letter-spacing:3px;line-height:1.1;min-height:38px;">- - -</div>
-      <div id="mm-unit-lbl" style="font-family:Share Tech Mono,monospace;font-size:10px;color:#00aa55;text-align:center;margin-top:2px;">Вольт</div>
-      
-      <div style="margin-top:8px;height:5px;background:#002a10;border-radius:3px;">
+    <!-- Main display -->
+    <div style="background:#001408;border:2px solid #003a1a;border-radius:8px;padding:6px 8px;margin-bottom:6px;position:relative;">
+      <div id="mm-mode-lbl" style="position:absolute;top:3px;left:6px;font-family:Share Tech Mono,monospace;font-size:7px;color:#006633;letter-spacing:1px;">DC V</div>
+      <div id="mm-ac-lbl" style="position:absolute;top:3px;right:6px;font-family:Share Tech Mono,monospace;font-size:7px;color:#006633;">●DC</div>
+      <div id="mm-reading" style="font-family:Share Tech Mono,monospace;font-size:24px;color:#00ff88;text-align:center;letter-spacing:2px;line-height:1.1;min-height:28px;padding-top:8px;">- - -</div>
+      <div id="mm-unit-lbl" style="font-family:Share Tech Mono,monospace;font-size:8px;color:#00aa55;text-align:center;margin-top:1px;">Вольт</div>
+      <div style="margin-top:5px;height:4px;background:#002a10;border-radius:3px;">
         <div id="mm-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#00ff88,#ffbe0b);border-radius:3px;transition:width 0.15s;"></div>
       </div>
     </div>
 
-    
-    <div id="mm-status" style="font-size:10px;color:#4a7a99;text-align:center;margin-bottom:8px;min-height:16px;font-family:Rajdhani,sans-serif;">Підключіть щупи до елементів схеми</div>
+    <!-- Probe status -->
+    <div id="mm-status" style="font-size:8px;color:#4a7a99;text-align:center;margin-bottom:5px;min-height:12px;font-family:Rajdhani,sans-serif;">Підключіть щупи до елементів схеми</div>
 
-    
-    <div style="display:flex;gap:8px;margin-bottom:8px;">
+    <!-- Probe buttons -->
+    <div style="display:flex;gap:5px;margin-bottom:5px;">
       <div id="mm-plus-btn" onclick="startProbe('plus')"
-        style="flex:1;padding:10px 4px;background:#001a00;border:2px solid #00ff88;border-radius:10px;text-align:center;cursor:pointer;transition:all 0.15s;">
-        <div style="font-size:18px;font-weight:700;color:#00ff88;line-height:1;">+</div>
-        <div id="mm-plus-lbl" style="font-size:8px;color:#00ff88;font-family:Share Tech Mono,monospace;margin-top:2px;">ЩУП</div>
+        style="flex:1;padding:6px 2px;background:#001a00;border:2px solid #00ff88;border-radius:8px;text-align:center;cursor:pointer;transition:all 0.15s;">
+        <div style="font-size:14px;font-weight:700;color:#00ff88;line-height:1;">+</div>
+        <div id="mm-plus-lbl" style="font-size:7px;color:#00ff88;font-family:Share Tech Mono,monospace;margin-top:1px;">ЩУП</div>
       </div>
       <div id="mm-minus-btn" onclick="startProbe('minus')"
-        style="flex:1;padding:10px 4px;background:#1a0000;border:2px solid #ff3b3b;border-radius:10px;text-align:center;cursor:pointer;transition:all 0.15s;">
-        <div style="font-size:18px;font-weight:700;color:#ff3b3b;line-height:1;">−</div>
-        <div id="mm-minus-lbl" style="font-size:8px;color:#ff3b3b;font-family:Share Tech Mono,monospace;margin-top:2px;">ЩУП</div>
+        style="flex:1;padding:6px 2px;background:#1a0000;border:2px solid #ff3b3b;border-radius:8px;text-align:center;cursor:pointer;transition:all 0.15s;">
+        <div style="font-size:14px;font-weight:700;color:#ff3b3b;line-height:1;">−</div>
+        <div id="mm-minus-lbl" style="font-size:7px;color:#ff3b3b;font-family:Share Tech Mono,monospace;margin-top:1px;">ЩУП</div>
       </div>
     </div>
 
-    
-    <div onclick="mmReset()" style="text-align:center;font-size:10px;color:#4a7a99;cursor:pointer;padding:4px;border:1px solid var(--border);border-radius:6px;font-family:Rajdhani,sans-serif;font-weight:600;margin-bottom:8px;">↺ Скинути щупи</div>
+    <!-- Reset probes -->
+    <div onclick="mmReset()" style="text-align:center;font-size:9px;color:#4a7a99;cursor:pointer;padding:3px;border:1px solid var(--border);border-radius:5px;font-family:Rajdhani,sans-serif;font-weight:600;margin-bottom:5px;">↺ Скинути щупи</div>
 
- 
-    <canvas id="mm-history" width="198" height="44" style="width:100%;background:#001408;border-radius:6px;border:1px solid #003a1a;display:block;"></canvas>
+    <!-- History graph -->
+    <canvas id="mm-history" width="174" height="32" style="width:100%;background:#001408;border-radius:5px;border:1px solid #003a1a;display:block;"></canvas>
   </div>
 </div>
 
 <div class="shelf">
   <div class="filter-bar" id="filters">
-    <div class="f-btn active" onclick="filterInv('ALL')">УСІ</div>
-    <div class="f-btn" onclick="filterInv('PWR')">⚡ ЖИВЛЕННЯ</div>
-    <div class="f-btn" onclick="filterInv('PAS')">🔧 ПАСИВНІ</div>
-    <div class="f-btn" onclick="filterInv('SEMI')">💎 НАПІВПРОВІДНИКИ</div>
-    <div class="f-btn" onclick="filterInv('LOG')">🧠 ЛОГІКА</div>
-    <div class="f-btn" onclick="filterInv('MET')">📟 ПРИЛАДИ</div>
-    <div class="f-btn" onclick="filterInv('RF')">📡 РФ</div>
-    <div class="f-btn" onclick="filterInv('SENS')">🌡 СЕНСОРИ</div>
-    <div class="f-btn" onclick="filterInv('MECH')">⚙ МЕХАНІКА</div>
-    <div class="f-btn" onclick="filterInv('CTRL')">🎛 КЕРУВАННЯ</div>
+    <div class="f-btn active" data-cat="ALL" onclick="filterInv('ALL')">УСІ</div>
+    <div class="f-btn" data-cat="PWR" onclick="filterInv('PWR')">ЖИВЛЕННЯ</div>
+    <div class="f-btn" data-cat="PAS" onclick="filterInv('PAS')">ПАСИВНІ</div>
+    <div class="f-btn" data-cat="SEMI" onclick="filterInv('SEMI')">НАПІВПРОВІДНИКИ</div>
+    <div class="f-btn" data-cat="LOG" onclick="filterInv('LOG')">ЛОГІКА</div>
+    <div class="f-btn" data-cat="MET" onclick="filterInv('MET')">ПРИЛАДИ</div>
+    <div class="f-btn" data-cat="RF" onclick="filterInv('RF')">МЕРЕЖА</div>
+    <div class="f-btn" data-cat="SENS" onclick="filterInv('SENS')">СЕНСОРИ</div>
+    <div class="f-btn" data-cat="MECH" onclick="filterInv('MECH')">МЕХАНІКА</div>
+    <div class="f-btn" data-cat="CTRL" onclick="filterInv('CTRL')">КЕРУВАННЯ</div>
   </div>
   <div class="shelf-scroll" id="inv"></div>
 </div>
@@ -360,9 +439,8 @@ canvas { display: block; width: 100%; height: 100%; }
 
 <script>
 
-
 const Lib = {
-  
+  // ===== ЖИВЛЕННЯ (PWR) =====
   bat:   { g:'PWR', n:'Батарея DC',    svg: drawBat,   c:'#fbbf24', s:true,  pins:2, props:{ v:{n:'Напруга (В)',v:9,min:0.1,max:500,step:0.1}, r:{n:'Внутр. опір (Ом)',v:0.1,min:0,max:10,step:0.1} } },
   bat3v: { g:'PWR', n:'Батарея 3В',    svg: drawBat,   c:'#facc15', s:true,  pins:2, props:{ v:{n:'Напруга (В)',v:3,min:0.1,max:500,step:0.1}, r:{n:'Внутр. опір (Ом)',v:0.05,min:0,max:10,step:0.01} } },
   bat5v: { g:'PWR', n:'Блок 5В USB',   svg: drawBat,   c:'#4ade80', s:true,  pins:2, props:{ v:{n:'Напруга (В)',v:5,min:0.1,max:500,step:0.1}, r:{n:'Внутр. опір (Ом)',v:0.05,min:0,max:10,step:0.01} } },
@@ -373,7 +451,7 @@ const Lib = {
   fuel:  { g:'PWR', n:'Паливний елем.',svg: drawBat,   c:'#6ee7b7', s:true,  pins:2, props:{ v:{n:'Напруга (В)',v:1.2,min:0.5,max:5,step:0.1}, p:{n:'Потужність (Вт)',v:50,min:1,max:1000,step:1} } },
   wind:  { g:'PWR', n:'Вітрогенератор',svg: drawWind,  c:'#93c5fd', s:true,  pins:2, props:{ v:{n:'Напруга (В)',v:24,min:1,max:200,step:1}, spd:{n:'Вітер (м/с)',v:10,min:0,max:30,step:1} } },
 
-  
+
   res:   { g:'PAS', n:'Резистор',      svg: drawRes,   c:'#94a3b8', pins:2, props:{ r:{n:'Опір (Ом)',v:100,min:0.1,max:10000000,step:1}, p:{n:'Потужність (Вт)',v:0.25,min:0.1,max:100,step:0.1} } },
   res_v: { g:'PAS', n:'Варистор',      svg: drawRes,   c:'#fb7185', pins:2, props:{ r:{n:'Опір (Ом)',v:47,min:1,max:10000,step:1}, v:{n:'Напруга спрац. (В)',v:130,min:1,max:1000,step:1} } },
   pot:   { g:'PAS', n:'Потенціометр',  svg: drawPot,   c:'#c084fc', pins:3, props:{ r:{n:'Повний опір (Ом)',v:10000,min:10,max:1000000,step:10}, pos:{n:'Положення (%)',v:50,min:0,max:100,step:1} } },
@@ -420,14 +498,22 @@ const Lib = {
   nor:   { g:'LOG', n:'NOR',           svg: drawOR,    c:'#dc2626', pins:3, props:{ vcc:{n:'Напруга (В)',v:5,min:3,max:15,step:0.1} } },
   xor:   { g:'LOG', n:'XOR',           svg: drawXOR,   c:'#7c3aed', pins:3, props:{ vcc:{n:'Напруга (В)',v:5,min:3,max:15,step:0.1} } },
   ff_d:  { g:'LOG', n:'D Тригер',     svg: drawFF,    c:'#8b5cf6', pins:4, props:{ vcc:{n:'Напруга (В)',v:5,min:3,max:15,step:0.1} } },
+  ff_sr: { g:'LOG', n:'SR Тригер',    svg: drawFFSR,  c:'#a78bfa', pins:4, props:{ vcc:{n:'Напруга (В)',v:5,min:3,max:15,step:0.1} } },
+  ff_jk: { g:'LOG', n:'JK Тригер',   svg: drawFFJK,  c:'#7c3aed', pins:5, props:{ vcc:{n:'Напруга (В)',v:5,min:3,max:15,step:0.1} } },
   mux:   { g:'LOG', n:'Мультиплексор',svg: drawMUX,   c:'#6d28d9', pins:5, props:{} },
+  demux: { g:'LOG', n:'Демультиплексор',svg:drawDEMUX,c:'#5b21b6', pins:5, props:{} },
   '555': { g:'LOG', n:'Таймер 555',   svg: draw555,   c:'#d97706', pins:8, props:{ r1:{n:'R1 (кОм)',v:10,min:1,max:1000,step:1}, r2:{n:'R2 (кОм)',v:10,min:1,max:1000,step:1}, c:{n:'C (мкФ)',v:1,min:0.001,max:1000,step:0.001} } },
-  counter:{g:'LOG', n:'Лічильник',    svg: drawMUX,   c:'#b45309', pins:6, props:{ bits:{n:'Розрядність',v:4,min:2,max:16,step:1} } },
+  clkgen:{ g:'LOG', n:'Генератор тактів',svg:drawCLK, c:'#f59e0b', pins:2, props:{ f:{n:'Частота (Гц)',v:1,min:0.1,max:10000,step:0.1} }, s:true },
+  counter:{g:'LOG', n:'Лічильник',    svg: drawCNT,   c:'#b45309', pins:6, props:{ bits:{n:'Розрядність',v:4,min:2,max:16,step:1} } },
+  shreg: { g:'LOG', n:'Зсувний регістр',svg:drawSHREG,c:'#92400e', pins:5, props:{ bits:{n:'Розрядність',v:8,min:2,max:16,step:1} } },
+  dec:   { g:'LOG', n:'Дешифратор',   svg: drawDEC,   c:'#065f46', pins:6, props:{} },
+  probe: { g:'LOG', n:'Логічний пробник',svg:drawPROBE,c:'#f472b6', pins:2, props:{} },
+  seg7:  { g:'LOG', n:'7-сегм. дисплей',svg:drawSEG7, c:'#ef4444', pins:4, props:{ val:{n:'Значення (0-15)',v:0,min:0,max:15,step:1} } },
   mcu:   { g:'LOG', n:'Мікроконтролер',svg:drawMCU,  c:'#0ea5e9', pins:8, props:{ freq:{n:'Частота (МГц)',v:16,min:1,max:240,step:1} } },
   oamp:  { g:'LOG', n:'Операц. підсил.',svg:drawOpAmp,c:'#06b6d4', pins:5, props:{ gain:{n:'Підсилення',v:100,min:1,max:1000000,step:1} } },
   comp:  { g:'LOG', n:'Компаратор',   svg: drawOpAmp,  c:'#0891b2', pins:4, props:{ vcc:{n:'Напруга (В)',v:5,min:1,max:36,step:1} } },
 
-  
+  // ===== ПРИЛАДИ (MET) =====
   volt:  { g:'MET', n:'Вольтметр',    svg: drawVolt,  c:'#38bdf8', pins:2, props:{ rng:{n:'Діапазон (В)',v:100,min:1,max:1000,step:1} } },
   amm:   { g:'MET', n:'Амперметр',    svg: drawAmm,   c:'#34d399', pins:2, props:{ rng:{n:'Діапазон (А)',v:10,min:0.001,max:100,step:0.001} } },
   ohm:   { g:'MET', n:'Омметр',       svg: drawVolt,  c:'#a78bfa', pins:2, props:{} },
@@ -467,7 +553,7 @@ const Lib = {
   vfd:    { g:'MET', n:'VFD Дисплей',   svg: drawVFD,    c:'#00ffcc', pins:3, props:{ text:{n:'Текст',v:'VFD',t:'text'} } },
   seg14:  { g:'MET', n:'14-сег. дисп.', svg: drawSeg14,  c:'#f97316', pins:2, props:{ ch:{n:'Символ',v:'A',t:'text'} } },
   hub75:  { g:'MET', n:'LED Панель P10',svg: drawLEDPanel,c:'#ef4444', pins:5, props:{ r:{n:'Червоний',v:255,min:0,max:255,step:1}, gg:{n:'Зелений',v:128,min:0,max:255,step:1}, b:{n:'Синій',v:0,min:0,max:255,step:1} } },
-  
+  // ===== КАМЕРИ =====
   cam_ov: { g:'MET', n:'Камера OV2640', svg: drawCamera, c:'#64748b', pins:6, props:{ res:{n:'Роздільність',v:0,min:0,max:3,step:1}, fps:{n:'FPS',v:15,min:1,max:60,step:1}, fx:{n:'Ефект (0-6)',v:0,min:0,max:6,step:1} } },
   cam_pi: { g:'MET', n:'PiCamera v2',   svg: drawCamera, c:'#475569', pins:4, props:{ res:{n:'Роздільність',v:2,min:0,max:4,step:1}, fps:{n:'FPS',v:30,min:1,max:90,step:1} } },
   cam_ir: { g:'SENS',n:'ІЧ Камера',     svg: drawIRCam,  c:'#fbbf24', pins:4, props:{ fov:{n:'Кут (°)',v:90,min:30,max:180,step:5}, sens:{n:'Чутл. IR',v:50,min:0,max:100,step:1} } },
@@ -481,7 +567,7 @@ const Lib = {
 
   // ===== КЕРУВАННЯ (CTRL) =====
   btn:   { g:'CTRL',n:'Кнопка (мом.)',  svg: drawBtn,  c:'#cbd5e1', pins:2, props:{ label:{n:'Напис',v:'BTN',t:'text'} } },
-  sw_2p: { g:'CTRL',n:'Тумблер 2п.',  svg: drawSwi,   c:'#e2e8f0', pins:2, props:{} },
+  sw_2p: { g:'CTRL',n:'Тумблер 2п.',  svg: drawSwi2P, c:'#e2e8f0', pins:6, props:{}, st:false },
   pot2:  { g:'CTRL',n:'Ручний потенц.',svg: drawPot,  c:'#d1d5db', pins:3, props:{ r:{n:'Опір (Ом)',v:10000,min:100,max:1000000,step:100}, pos:{n:'Положення (%)',v:50,min:0,max:100,step:1} } },
   gnd:    { g:'CTRL',n:'Земля (GND)',    svg: drawGND,    c:'#6b7280', pins:1, props:{} },
   vcc:    { g:'CTRL',n:'Живлення VCC',   svg: drawVCC,    c:'#f59e0b', pins:1, props:{ v:{n:'Напруга (В)',v:5,min:1,max:60,step:0.1} } },
@@ -505,7 +591,9 @@ const Lib = {
   pwm:    { g:'LOG', n:'ШІМ генератор',  svg: draw555,    c:'#f59e0b', pins:3, props:{ f:{n:'Частота (Гц)',v:1000,min:1,max:1000000,step:1}, dc:{n:'Скваж. (%)',v:50,min:0,max:100,step:1} } },
 };
 
-
+// ============================================================
+// ФУНКЦІЇ МАЛЮВАННЯ SVG
+// ============================================================
 function drawBat(ctx, p, a, c) {
   ctx.strokeStyle = c; ctx.lineWidth = 2.5;
   ctx.beginPath(); ctx.moveTo(-20,0); ctx.lineTo(-5,0); ctx.stroke();
@@ -538,9 +626,190 @@ function drawSolar(ctx, p, a, c) {
   for(let i=0;i<6;i++) { let a=i*60*Math.PI/180; ctx.beginPath(); ctx.moveTo(Math.cos(a)*18,Math.sin(a)*18); ctx.lineTo(Math.cos(a)*22,Math.sin(a)*22); ctx.stroke(); }
 }
 function drawWind(ctx, p, a, c) {
-  ctx.strokeStyle = c; ctx.lineWidth = 2.5;
-  ctx.beginPath(); ctx.arc(0,0,4,0,Math.PI*2); ctx.stroke();
-  for(let i=0;i<3;i++) { let ang=i*120*Math.PI/180; ctx.beginPath(); ctx.moveTo(Math.cos(ang)*4,Math.sin(ang)*4); ctx.bezierCurveTo(Math.cos(ang+0.5)*12,Math.sin(ang+0.5)*12,Math.cos(ang+1)*16,Math.sin(ang+1)*16,Math.cos(ang+1.5)*14,Math.sin(ang+1.5)*14); ctx.bezierCurveTo(Math.cos(ang+0.8)*8,Math.sin(ang+0.8)*8,Math.cos(ang)*4,Math.sin(ang)*4,Math.cos(ang)*4,Math.sin(ang)*4); ctx.stroke(); }
+  const windSpd = parseFloat(p.vals.spd||10);
+  const bladeCol = a ? c : '#64748b';
+  ctx.strokeStyle = bladeCol; ctx.lineWidth = 2;
+  // Static tower & base
+  ctx.beginPath(); ctx.moveTo(0,5); ctx.lineTo(0,22); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-9,22); ctx.lineTo(9,22); ctx.stroke();
+  // Outer ring (nacelle)
+  ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.stroke();
+
+  // Rotating blades — spin when active, speed proportional to wind speed
+  const rot = a ? (Date.now() * 0.003 * Math.max(0.1, windSpd / 10)) : 0;
+  ctx.save();
+  ctx.rotate(rot);
+  ctx.strokeStyle = bladeCol;
+  ctx.lineWidth = 2;
+  for(let i=0;i<3;i++) {
+    const ang = i * Math.PI*2/3;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(ang)*5, Math.sin(ang)*5);
+    ctx.bezierCurveTo(
+      Math.cos(ang+0.35)*10, Math.sin(ang+0.35)*10,
+      Math.cos(ang+0.6)*17,  Math.sin(ang+0.6)*17,
+      Math.cos(ang+0.9)*16,  Math.sin(ang+0.9)*16
+    );
+    ctx.bezierCurveTo(
+      Math.cos(ang+0.5)*10, Math.sin(ang+0.5)*10,
+      Math.cos(ang)*6,      Math.sin(ang)*6,
+      Math.cos(ang)*5,      Math.sin(ang)*5
+    );
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Center hub dot
+  ctx.fillStyle = bladeCol;
+  ctx.beginPath(); ctx.arc(0,0,3,0,Math.PI*2); ctx.fill();
+  // Show generated voltage when active
+  if(a) {
+    const vgen = (parseFloat(p.vals.v||24) * Math.min(1, windSpd/10)).toFixed(1);
+    ctx.fillStyle = c; ctx.font='6px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillText('~'+vgen+'В', 0, -28);
+  }
+}
+function drawFFSR(ctx, p, a, c) {
+  ctx.strokeStyle=c; ctx.lineWidth=2;
+  ctx.strokeRect(-16,-16,32,32);
+  ctx.fillStyle=c; ctx.font='bold 7px Share Tech Mono'; ctx.textAlign='center';
+  ctx.fillText('SR-FF',0,-5);
+  ctx.font='6px Share Tech Mono';
+  ctx.textAlign='right'; ctx.fillText('S',-8,3); ctx.fillText('R',-8,13);
+  ctx.textAlign='left';  ctx.fillText('Q',10,3);
+  ctx.beginPath(); ctx.moveTo(-20,-8); ctx.lineTo(-16,-8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-20,8); ctx.lineTo(-16,8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(16,-8); ctx.lineTo(20,-8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(16,8); ctx.lineTo(20,8); ctx.stroke();
+  if(a && p.vals._out!==undefined) {
+    ctx.fillStyle=p.vals._out?'#00ff88':'#ff3b3b';
+    ctx.font='bold 8px Share Tech Mono'; ctx.textAlign='left';
+    ctx.fillText(p.vals._out?'Q=1':'Q=0',22,3);
+  }
+}
+function drawFFJK(ctx, p, a, c) {
+  ctx.strokeStyle=c; ctx.lineWidth=2;
+  ctx.strokeRect(-16,-20,32,40);
+  ctx.fillStyle=c; ctx.font='bold 7px Share Tech Mono'; ctx.textAlign='center';
+  ctx.fillText('JK-FF',0,-8);
+  ctx.font='6px Share Tech Mono';
+  ctx.textAlign='right'; ctx.fillText('J',-8,-2); ctx.fillText('K',-8,8); ctx.fillText('CLK',-8,17);
+  ctx.textAlign='left';  ctx.fillText('Q',10,-2); ctx.fillText('Q̄',10,8);
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(-20,-10+i*10);ctx.lineTo(-16,-10+i*10);ctx.stroke();}
+  for(let i=0;i<2;i++){ctx.beginPath();ctx.moveTo(16,-8+i*10);ctx.lineTo(20,-8+i*10);ctx.stroke();}
+  if(a && p.vals._out!==undefined) {
+    ctx.fillStyle=p.vals._out?'#00ff88':'#ff3b3b';
+    ctx.font='bold 8px Share Tech Mono'; ctx.textAlign='left';
+    ctx.fillText(p.vals._out?'1':'0',22,-2);
+  }
+}
+function drawDEMUX(ctx, p, a, c) {
+  ctx.strokeStyle=c; ctx.lineWidth=2;
+  ctx.strokeRect(-16,-18,32,36);
+  ctx.fillStyle=c; ctx.font='bold 7px Share Tech Mono'; ctx.textAlign='center';
+  ctx.fillText('DMUX',0,4);
+  ctx.beginPath(); ctx.moveTo(-20,0); ctx.lineTo(-16,0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(16,-8); ctx.lineTo(20,-8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(16,8); ctx.lineTo(20,8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,18); ctx.lineTo(0,22); ctx.stroke();
+}
+function drawCLK(ctx, p, a, c) {
+  ctx.strokeStyle=c; ctx.lineWidth=2;
+  ctx.strokeRect(-16,-14,32,28);
+  ctx.fillStyle=c; ctx.font='bold 7px Share Tech Mono'; ctx.textAlign='center';
+  ctx.fillText('CLK',0,-3);
+  ctx.font='6px Share Tech Mono';
+  ctx.fillText((p.vals.f||1)+'Hz',0,8);
+  ctx.beginPath(); ctx.moveTo(16,0); ctx.lineTo(20,0); ctx.stroke();
+  // Square wave icon
+  if(a) {
+    const phase = (Date.now()*0.001*(p.vals.f||1))%1 < 0.5;
+    ctx.strokeStyle = phase?'#00ff88':c; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(-10,4); ctx.lineTo(-10,-4); ctx.lineTo(-2,-4); ctx.lineTo(-2,4); ctx.lineTo(6,4); ctx.stroke();
+    // propagate clock signal
+    p.vals._v = phase ? parseFloat(p.vals.vcc||5) : 0;
+    p.vals._out = phase ? 1 : 0;
+  }
+}
+function drawCNT(ctx, p, a, c) {
+  ctx.strokeStyle=c; ctx.lineWidth=2;
+  ctx.strokeRect(-16,-18,32,36);
+  ctx.fillStyle=c; ctx.font='bold 7px Share Tech Mono'; ctx.textAlign='center';
+  ctx.fillText('CNT',0,-6);
+  ctx.font='6px Share Tech Mono';
+  const cnt = p._cnt||0;
+  ctx.fillText(cnt+'/'+(1<<(p.vals.bits||4)), 0, 4);
+  ctx.fillText((p.vals.bits||4)+'bit', 0, 13);
+  ctx.beginPath(); ctx.moveTo(-20,0); ctx.lineTo(-16,0); ctx.stroke(); // CLK
+  ctx.beginPath(); ctx.moveTo(-20,10); ctx.lineTo(-16,10); ctx.stroke(); // RST
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(16,-10+i*10);ctx.lineTo(20,-10+i*10);ctx.stroke();}
+}
+function drawSHREG(ctx, p, a, c) {
+  ctx.strokeStyle=c; ctx.lineWidth=2;
+  ctx.strokeRect(-18,-16,36,32);
+  ctx.fillStyle=c; ctx.font='bold 7px Share Tech Mono'; ctx.textAlign='center';
+  ctx.fillText('SHREG',0,-4);
+  const bits = p.vals.bits||8;
+  ctx.font='5px Share Tech Mono';
+  ctx.fillText(bits+'bit', 0, 6);
+  ctx.beginPath(); ctx.moveTo(-22,-8); ctx.lineTo(-18,-8); ctx.stroke(); // DATA
+  ctx.beginPath(); ctx.moveTo(-22,8); ctx.lineTo(-18,8); ctx.stroke();  // CLK
+  ctx.beginPath(); ctx.moveTo(18,0); ctx.lineTo(22,0); ctx.stroke();    // OUT
+}
+function drawDEC(ctx, p, a, c) {
+  ctx.strokeStyle=c; ctx.lineWidth=2;
+  ctx.strokeRect(-16,-20,32,40);
+  ctx.fillStyle=c; ctx.font='bold 7px Share Tech Mono'; ctx.textAlign='center';
+  ctx.fillText('DEC',0,-8); ctx.fillText('3:8',0,2);
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(-20,-10+i*8);ctx.lineTo(-16,-10+i*8);ctx.stroke();}
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(16,-10+i*8);ctx.lineTo(20,-10+i*8);ctx.stroke();}
+}
+function drawPROBE(ctx, p, a, c) {
+  ctx.strokeStyle=c; ctx.lineWidth=2;
+  // Probe body
+  ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-20,0); ctx.lineTo(-12,0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,12); ctx.lineTo(0,18); ctx.stroke();
+  if(a) {
+    const hi = p.pwr && (p.vals._v||0)>1.5;
+    ctx.fillStyle = hi ? '#00ff88' : '#ff3b3b';
+    ctx.beginPath(); ctx.arc(0,0,9,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#000'; ctx.font='bold 9px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillText(hi?'1':'0', 0, 4);
+  } else {
+    ctx.fillStyle=c; ctx.font='bold 8px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillText('?', 0, 4);
+  }
+}
+function drawSEG7(ctx, p, a, c) {
+  const val = a ? Math.round(p.vals._out!==undefined ? p.vals._out*15 : (p.vals.val||0)) : null;
+  const segs = [0x7E,0x30,0x6D,0x79,0x33,0x5B,0x5F,0x70,0x7F,0x7B,0x77,0x1F,0x4E,0x3D,0x4F,0x47];
+  const seg = val!==null ? (segs[val&0xF]||0) : 0;
+  ctx.strokeStyle=c; ctx.lineWidth=1.5; ctx.strokeRect(-16,-22,32,44);
+  // 7 segments: a(top) b(tr) c(br) d(bot) e(bl) f(tl) g(mid)
+  const s=(bit)=>a?(seg>>bit&1):0;
+  const sc='#1a1a1a', ac='#ff3b3b';
+  const segsData=[
+    [[-8,-18],[8,-18],0],  // a top
+    [[10,-16],[10,-2],1],  // b top-right
+    [[10,0],[10,14],2],    // c bot-right
+    [[-8,16],[8,16],3],    // d bot
+    [[-10,0],[-10,14],4],  // e bot-left
+    [[-10,-16],[-10,-2],5],// f top-left
+    [[-8,-2],[8,-2],6],    // g mid
+  ];
+  segsData.forEach(([p1,p2,bit])=>{
+    ctx.strokeStyle = s(bit) ? ac : sc;
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(p1[0],p1[1]); ctx.lineTo(p2[0],p2[1]); ctx.stroke();
+  });
+  ctx.strokeStyle=c; ctx.lineWidth=1.5;
+  for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(-20,-12+i*8);ctx.lineTo(-16,-12+i*8);ctx.stroke();}
+  ctx.beginPath(); ctx.moveTo(16,0); ctx.lineTo(20,0); ctx.stroke();
+  if(a&&val!==null){
+    ctx.fillStyle=c; ctx.font='6px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillText('0x'+(val).toString(16).toUpperCase(),0,26);
+  }
 }
 function drawRes(ctx, p, a, c) {
   ctx.strokeStyle = c; ctx.lineWidth = 2.5;
@@ -633,6 +902,39 @@ function drawSwi(ctx, p, a, c) {
     ctx.beginPath(); ctx.moveTo(-10,0); ctx.lineTo(10,0); ctx.stroke();
   } else {
     ctx.beginPath(); ctx.moveTo(-10,0); ctx.lineTo(8,-12); ctx.stroke();
+  }
+}
+function drawSwi2P(ctx, p, a, c) {
+  // DPDT: two rows, each with common(left), pos-A(top-right), pos-B(bottom-right)
+  const on = p.st;
+  ctx.strokeStyle = c; ctx.lineWidth = 2;
+  // Body outline
+  ctx.strokeRect(-14,-20,28,40);
+  // Label
+  ctx.fillStyle = c; ctx.font='bold 7px monospace';
+  ctx.textAlign='center'; ctx.fillText('2П', 0, 3);
+  // State indicator
+  ctx.fillStyle = on ? '#22c55e' : '#ff3b3b';
+  ctx.fillRect(-5, on ? 6 : -14, 10, 8);
+  // Pin stubs - pole 1 (top)
+  ctx.strokeStyle = c; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-22,-12); ctx.lineTo(-14,-12); ctx.stroke(); // common 1
+  ctx.beginPath(); ctx.moveTo(14,-16); ctx.lineTo(22,-16); ctx.stroke(); // A1
+  ctx.beginPath(); ctx.moveTo(14,-8);  ctx.lineTo(22,-8);  ctx.stroke(); // B1
+  // Pin stubs - pole 2 (bottom)
+  ctx.beginPath(); ctx.moveTo(-22,12); ctx.lineTo(-14,12); ctx.stroke(); // common 2
+  ctx.beginPath(); ctx.moveTo(14,8);   ctx.lineTo(22,8);   ctx.stroke(); // A2
+  ctx.beginPath(); ctx.moveTo(14,16);  ctx.lineTo(22,16);  ctx.stroke(); // B2
+  // Connection lines inside
+  ctx.lineWidth = 2.5;
+  if(on) {
+    ctx.strokeStyle='#22c55e';
+    ctx.beginPath(); ctx.moveTo(-14,-12); ctx.lineTo(14,-16); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-14,12);  ctx.lineTo(14,8);   ctx.stroke();
+  } else {
+    ctx.strokeStyle='#f97316';
+    ctx.beginPath(); ctx.moveTo(-14,-12); ctx.lineTo(14,-8);  ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-14,12);  ctx.lineTo(14,16);  ctx.stroke();
   }
 }
 function drawRelay(ctx, p, a, c) {
@@ -735,6 +1037,18 @@ function drawAND(ctx, p, a, c) {
   ctx.beginPath(); ctx.moveTo(-20,-8); ctx.lineTo(-14,-8); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(-20,8); ctx.lineTo(-14,8); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(16,0); ctx.lineTo(20,0); ctx.stroke();
+  // label
+  ctx.fillStyle=c; ctx.font='bold 7px Share Tech Mono'; ctx.textAlign='center';
+  const lbl = p.type==='nand'?'NAND':'AND';
+  ctx.fillText(lbl, -4, 4);
+  // NAND bubble
+  if(p.type==='nand') { ctx.beginPath(); ctx.arc(18,0,3,0,Math.PI*2); ctx.stroke(); }
+  // output indicator
+  if(a && p.vals._out!==undefined) {
+    ctx.fillStyle = p.vals._out ? '#00ff88' : '#ff3b3b';
+    ctx.font='bold 8px Share Tech Mono'; ctx.textAlign='left';
+    ctx.fillText(p.vals._out?'1':'0', 22, 4);
+  }
 }
 function drawOR(ctx, p, a, c) {
   ctx.strokeStyle = c; ctx.lineWidth = 2.5;
@@ -744,6 +1058,15 @@ function drawOR(ctx, p, a, c) {
   ctx.beginPath(); ctx.moveTo(-20,-8); ctx.lineTo(-10,-8); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(-20,8); ctx.lineTo(-10,8); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(16,0); ctx.lineTo(20,0); ctx.stroke();
+  ctx.fillStyle=c; ctx.font='bold 7px Share Tech Mono'; ctx.textAlign='center';
+  const lbl = p.type==='nor'?'NOR':'OR';
+  ctx.fillText(lbl, -2, 4);
+  if(p.type==='nor') { ctx.beginPath(); ctx.arc(18,0,3,0,Math.PI*2); ctx.stroke(); }
+  if(a && p.vals._out!==undefined) {
+    ctx.fillStyle = p.vals._out ? '#00ff88' : '#ff3b3b';
+    ctx.font='bold 8px Share Tech Mono'; ctx.textAlign='left';
+    ctx.fillText(p.vals._out?'1':'0', 22, 4);
+  }
 }
 function drawNOT(ctx, p, a, c) {
   ctx.strokeStyle = c; ctx.lineWidth = 2.5;
@@ -751,21 +1074,39 @@ function drawNOT(ctx, p, a, c) {
   ctx.beginPath(); ctx.arc(16,0,4,0,Math.PI*2); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(-20,0); ctx.lineTo(-14,0); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(20,0); ctx.lineTo(24,0); ctx.stroke();
+  ctx.fillStyle=c; ctx.font='bold 7px Share Tech Mono'; ctx.textAlign='center';
+  ctx.fillText('NOT',-3,4);
+  if(a && p.vals._out!==undefined) {
+    ctx.fillStyle = p.vals._out ? '#00ff88' : '#ff3b3b';
+    ctx.font='bold 8px Share Tech Mono'; ctx.textAlign='left';
+    ctx.fillText(p.vals._out?'1':'0', 26, 4);
+  }
 }
 function drawXOR(ctx, p, a, c) {
   drawOR(ctx,p,a,c);
   ctx.strokeStyle=c; ctx.lineWidth=2.5;
   ctx.beginPath(); ctx.moveTo(-18,-12); ctx.quadraticCurveTo(-12,0,-18,12); ctx.stroke();
+  ctx.fillStyle=c; ctx.font='bold 7px Share Tech Mono'; ctx.textAlign='center';
+  ctx.fillText('XOR',-2,4);
 }
 function drawFF(ctx, p, a, c) {
   ctx.strokeStyle=c; ctx.lineWidth=2.5;
   ctx.strokeRect(-16,-16,32,32);
-  ctx.fillStyle=c; ctx.font='bold 9px Share Tech Mono'; ctx.textAlign='center';
-  ctx.fillText('D',-12,4); ctx.fillText('Q',10,4);
+  ctx.fillStyle=c; ctx.font='bold 8px Share Tech Mono'; ctx.textAlign='center';
+  ctx.fillText('D-FF',0,-4);
+  ctx.font='6px Share Tech Mono';
+  ctx.textAlign='right'; ctx.fillText('D',-8,4);
+  ctx.textAlign='right'; ctx.fillText('CLK',-8,14);
+  ctx.textAlign='left';  ctx.fillText('Q',10,4);
   ctx.beginPath(); ctx.moveTo(-20,-8); ctx.lineTo(-16,-8); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(16,-8); ctx.lineTo(20,-8); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(-20,8); ctx.lineTo(-16,8); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(16,8); ctx.lineTo(20,8); ctx.stroke();
+  if(a && p.vals._out!==undefined) {
+    ctx.fillStyle = p.vals._out ? '#00ff88' : '#ff3b3b';
+    ctx.font='bold 8px Share Tech Mono'; ctx.textAlign='left';
+    ctx.fillText(p.vals._out?'Q=1':'Q=0', 22, 4);
+  }
 }
 function drawMUX(ctx, p, a, c) {
   ctx.strokeStyle=c; ctx.lineWidth=2.5;
@@ -811,7 +1152,7 @@ function drawVolt(ctx, p, a, c) {
   if(a) {
     const reading = calcReading(p);
     ctx.font='7px Share Tech Mono';
-    ctx.fillText(reading, 0, 16);
+    ctx.fillText(reading, 0, 28);
   }
 }
 function drawAmm(ctx, p, a, c) { drawVolt(ctx,p,a,c); }
@@ -941,6 +1282,123 @@ function drawSensor(ctx, p, a, c) {
   ctx.beginPath(); ctx.moveTo(-8,14); ctx.lineTo(-8,20); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(0,14); ctx.lineTo(0,20); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(8,14); ctx.lineTo(8,20); ctx.stroke();
+
+  if(!a) return; // не малюємо live дані без симуляції
+
+  // ── DHT22: температура + вологість ──────────────────────────
+  if(p.type==='dht') {
+    const t = p.vals._t !== undefined ? parseFloat(p.vals._t).toFixed(1) : parseFloat(p.vals.t||25).toFixed(1);
+    const h = p.vals._h !== undefined ? parseFloat(p.vals._h).toFixed(1) : parseFloat(p.vals.h||50).toFixed(1);
+    const fanEffect = p.vals._t !== undefined || p.vals._h !== undefined;
+    ctx.font='6px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillStyle = fanEffect ? '#f97316' : '#f87171';
+    ctx.fillText(t+'°C', 0, -20);
+    ctx.fillStyle = fanEffect ? '#38bdf8' : '#6ee7b7';
+    ctx.fillText(h+'%', 0, 28);
+    if(fanEffect) { ctx.fillStyle='#38bdf8'; ctx.font='5px Share Tech Mono'; ctx.fillText('💨', 12, -20); }
+
+  // ── PIR: рух ────────────────────────────────────────────────
+  } else if(p.type==='pir') {
+    const det = p.vals._det !== undefined ? p.vals._det : parseFloat(p.vals.det||0);
+    ctx.fillStyle = det ? '#f97316' : '#4a7a99';
+    ctx.font='6px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillText(det ? '🔴 РУХ' : '● тихо', 0, -22);
+    if(det) {
+      // animate detection pulse
+      ctx.globalAlpha = 0.3 + 0.3*Math.sin(Date.now()*0.01);
+      ctx.fillStyle='#f97316';
+      ctx.beginPath(); ctx.arc(0,0,20,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha=1;
+    }
+
+  // ── MQ2: газ ppm ────────────────────────────────────────────
+  } else if(p.type==='mq2') {
+    const ppm = p.vals._ppm !== undefined ? parseFloat(p.vals._ppm) : parseFloat(p.vals.ppm||0);
+    const danger = ppm > 300;
+    ctx.fillStyle = danger ? '#ef4444' : ppm > 50 ? '#f97316' : '#22c55e';
+    ctx.font='6px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillText(ppm.toFixed(0)+'ppm', 0, -22);
+    ctx.fillText(danger ? '⚠ ГАЗ!' : 'норма', 0, 28);
+    if(danger) {
+      ctx.globalAlpha = 0.15 + 0.15*Math.sin(Date.now()*0.008);
+      ctx.fillStyle='#ef4444';
+      ctx.beginPath(); ctx.arc(0,0,22,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha=1;
+    }
+
+  // ── HC-SR04: відстань ────────────────────────────────────────
+  } else if(p.type==='hcsr') {
+    const dist = p.vals._dist !== undefined ? parseFloat(p.vals._dist) : parseFloat(p.vals.dist||20);
+    const col2 = dist < 10 ? '#ef4444' : dist < 30 ? '#f97316' : '#38bdf8';
+    ctx.fillStyle = col2; ctx.font='6px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillText(dist.toFixed(1)+'cm', 0, -22);
+    // sonar arcs
+    const phase = (Date.now()*0.003)%1;
+    for(let i=0;i<2;i++) {
+      const r = 8 + i*8;
+      ctx.globalAlpha = Math.max(0, 0.6 - phase - i*0.2);
+      ctx.strokeStyle = col2; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(0,-14,r, Math.PI, 0, true); ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+
+  // ── Датчик Холла: магнітне поле ─────────────────────────────
+  } else if(p.type==='hall') {
+    const b = p.vals._b !== undefined ? parseFloat(p.vals._b) : parseFloat(p.vals.b||0);
+    const detected = Math.abs(b) > 10;
+    ctx.fillStyle = detected ? (b>0?'#38bdf8':'#f472b6') : '#4a7a99';
+    ctx.font='6px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillText(b.toFixed(0)+'мТл', 0, -22);
+    ctx.fillText(detected ? (b>0?'N-полюс':'S-полюс') : 'немає поля', 0, 28);
+    if(detected) {
+      ctx.globalAlpha=0.25; ctx.fillStyle=b>0?'#38bdf8':'#f472b6';
+      ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
+    }
+
+  // ── DS18B20: температура ─────────────────────────────────────
+  } else if(p.type==='ds18') {
+    const t = p.vals._t !== undefined ? parseFloat(p.vals._t) : parseFloat(p.vals.t||25);
+    const hot = t > 50; const cold = t < 0;
+    ctx.fillStyle = hot ? '#ef4444' : cold ? '#38bdf8' : '#22c55e';
+    ctx.font='7px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillText(t.toFixed(1)+'°C', 0, -22);
+    // thermometer bar
+    const norm = Math.max(0, Math.min(1, (t+55)/180));
+    ctx.fillStyle='#1e293b'; ctx.fillRect(-6,-10,12,20);
+    ctx.fillStyle = hot ? '#ef4444' : cold ? '#38bdf8' : '#22c55e';
+    ctx.fillRect(-6, 10-norm*20, 12, norm*20);
+
+  // ── Акселерометр: X Y Z ──────────────────────────────────────
+  } else if(p.type==='accel') {
+    const x=p.vals._x!==undefined?parseFloat(p.vals._x):parseFloat(p.vals.x||0);
+    const y=p.vals._y!==undefined?parseFloat(p.vals._y):parseFloat(p.vals.y||0);
+    const z=p.vals._z!==undefined?parseFloat(p.vals._z):parseFloat(p.vals.z||1);
+    ctx.font='5px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillStyle='#f472b6'; ctx.fillText('X:'+x.toFixed(2), -8, -20);
+    ctx.fillStyle='#34d399'; ctx.fillText('Y:'+y.toFixed(2),  8, -20);
+    ctx.fillStyle='#fbbf24'; ctx.fillText('Z:'+z.toFixed(2),  0, 28);
+    // vector indicator
+    const mag = Math.sqrt(x*x+y*y+z*z);
+    const nx = x/mag, ny = y/mag;
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(nx*10, ny*10); ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(nx*10, ny*10, 2,0,Math.PI*2); ctx.fill();
+
+  // ── Датчик тиску: гПа ────────────────────────────────────────
+  } else if(p.type==='press') {
+    const press = p.vals._p !== undefined ? parseFloat(p.vals._p) : parseFloat(p.vals.p||1013);
+    const alt = Math.round(44330*(1-Math.pow(press/1013.25, 0.1903)));
+    ctx.fillStyle = '#93c5fd'; ctx.font='6px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillText(press.toFixed(0)+'гПа', 0, -22);
+    ctx.fillStyle='#4a7a99'; ctx.font='5px Share Tech Mono';
+    ctx.fillText('~'+alt+'м', 0, 28);
+    // pressure gauge arc
+    const norm = Math.max(0, Math.min(1, (press-300)/800));
+    ctx.strokeStyle='#1e293b'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.arc(0,0,10, Math.PI*0.75, Math.PI*2.25); ctx.stroke();
+    ctx.strokeStyle='#93c5fd'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.arc(0,0,10, Math.PI*0.75, Math.PI*0.75+norm*Math.PI*1.5); ctx.stroke();
+  }
 }
 
 
@@ -1129,7 +1587,7 @@ function drawIRRX(ctx, p, a, c) {
   }
   for(let i=0;i<3;i++){ctx.beginPath();ctx.strokeStyle=c;ctx.lineWidth=2;ctx.moveTo(-6+i*6,-12);ctx.lineTo(-6+i*6,-10);ctx.stroke();}
 }
-
+// ===== NEW DISPLAY DRAW FUNCTIONS =====
 function drawOLED(ctx, p, a, c) {
   const bg=a?'#000':'#111'; const fg=a?'#fff':'#333';
   ctx.fillStyle=bg; ctx.fillRect(-22,-20,44,40);
@@ -1137,7 +1595,7 @@ function drawOLED(ctx, p, a, c) {
   if(a){
     ctx.fillStyle='#ffffff'; ctx.font='5px Share Tech Mono'; ctx.textAlign='left';
     ctx.fillText((p.vals.text||'Hello!').slice(0,14),-20,-10);
-    ctx.fillText((p.vals.text2||'VPKCTP').slice(0,14),-20,0);
+    ctx.fillText((p.vals.text2||'ElectroLab').slice(0,14),-20,0);
     ctx.fillStyle='#ffffff'; ctx.fillRect(-20,4,40,1);
     ctx.font='4px Share Tech Mono';
     ctx.fillText('128x64 OLED I2C',-20,12);
@@ -1471,7 +1929,7 @@ function init() {
   window.addEventListener('resize', resize);
   filterInv('ALL');
   setTimeout(applyLang, 50);
-  setInterval(()=>{ if(mm.plus&&mm.minus&&st.run) updateMM(); }, 300);
+  setInterval(()=>{ if(mm.plus&&mm.minus&&st.run) doMMRead(); }, 300);
   cvs.addEventListener('pointerdown', handleDwn);
   cvs.addEventListener('pointermove', handleMve);
   cvs.addEventListener('pointerup', handleUp);
@@ -1483,20 +1941,26 @@ function init() {
   window.addEventListener('keydown', handleKey);
   document.addEventListener('click', () => hideCtxMenu());
   loadFromLS();
+  initMobileEvents();
   render();
   setInterval(updateMeters, 200);
   setInterval(updateOscillo, 50);
 }
 
 function resize() {
-  const shelf = document.querySelector('.shelf');
   const header = document.querySelector('.header');
-  cvs.width = window.innerWidth;
-  cvs.height = window.innerHeight - header.offsetHeight - shelf.offsetHeight;
-  if(oscCanvas) { oscCanvas.width=240; oscCanvas.height=120; }
+  const shelf  = document.querySelector('.shelf');
+  cvs.width  = window.innerWidth;
+  cvs.height = window.innerHeight
+             - (header ? header.offsetHeight : 52)
+             - (shelf  ? shelf.offsetHeight  : 160);
+  if(cvs.height < 80) cvs.height = 80;
+  if(oscCanvas) { oscCanvas.width = 200; oscCanvas.height = 100; }
 }
 
-
+// ============================================================
+// WORLD ↔ SCREEN TRANSFORMS
+// ============================================================
 function toWorld(sx, sy) {
   return { x: (sx - st.cam.x) / st.zoom, y: (sy - st.cam.y) / st.zoom };
 }
@@ -1513,14 +1977,14 @@ function cycleTheme() {
   document.body.dataset.theme = st.themes[st.themeIdx] === 'dark' ? '' : st.themes[st.themeIdx];
 }
 
-
+// ============================================================
+// ФІЛЬТР ПОЛИЦІ
+// ============================================================
 function filterInv(cat) {
   inv.innerHTML = '';
   document.querySelectorAll('.f-btn').forEach(b => {
-    const t = b.textContent.trim();
-    b.classList.toggle('active', (cat==='ALL' && t.includes('УСІ')) || t.includes({PWR:'ЖИВЛЕННЯ',PAS:'ПАСИВНІ',SEMI:'НАПІВПРОВІДНИКИ',LOG:'ЛОГІКА',MET:'ПРИЛАДИ',RF:'РФ',SENS:'СЕНСОРИ',MECH:'МЕХАНІКА',CTRL:'КЕРУВАННЯ'}[cat]||'!!'));
+    b.classList.toggle('active', b.dataset.cat === cat);
   });
-  document.querySelectorAll('.f-btn')[0].classList.toggle('active', cat==='ALL');
   Object.keys(Lib).forEach(k => {
     if(cat !== 'ALL' && Lib[k].g !== cat) return;
     const card = document.createElement('div');
@@ -1543,7 +2007,9 @@ function filterInv(cat) {
   });
 }
 
-
+// ============================================================
+// INPUT HANDLERS
+// ============================================================
 let lastTap=0, pointers=[];
 
 function handleDwn(e) {
@@ -1574,8 +2040,13 @@ function handleDwn(e) {
 
   if(st.m === 'add') {
     if(found) {
-      if(st.run && (found.type==='swi'||found.type==='swi_n'||found.type==='btn')) { found.st=!found.st; solve(); }
-      else openEd(found, e.clientX, e.clientY);
+      if(st.run && (found.type==='swi'||found.type==='swi_n'||found.type==='btn'||found.type==='sw_2p')) { found.st=!found.st; solve(); }
+      else {
+        // clamp click coords so editor always opens inside viewport
+        const safeX = Math.max(10, Math.min(e.clientX, window.innerWidth  - 10));
+        const safeY = Math.max(10, Math.min(e.clientY, window.innerHeight - 10));
+        openEd(found, safeX, safeY);
+      }
     } else {
       placePart(wp.x, wp.y); closeEd();
     }
@@ -1670,7 +2141,9 @@ function handleKey(e) {
   if(e.ctrlKey&&e.key==='z') { /* undo placeholder */ }
 }
 
-
+// ============================================================
+// HELPERS
+// ============================================================
 function findPart(wx, wy) {
   const threshold = 30 / st.zoom;
   return st.parts.find(p => Math.hypot(p.x+20 - wx, p.y+20 - wy) < threshold);
@@ -1704,7 +2177,9 @@ function updateZoomInfo() {
   document.getElementById('zoom-info').textContent = Math.round(st.zoom*100)+'%';
 }
 
-
+// ============================================================
+// PROP EDITOR
+// ============================================================
 function openEd(p, x, y) {
   st.active = p;
   const lib = Lib[p.type];
@@ -1729,30 +2204,39 @@ function openEd(p, x, y) {
   calc.id='calc-info'; calc.style.cssText='margin-top:10px;padding:8px;background:var(--panel2);border-radius:8px;font-family:Share Tech Mono,monospace;font-size:9px;color:var(--muted);line-height:1.8';
   calc.innerHTML = getCalcInfo(p);
   fields.appendChild(calc);
-  // Smart positioning: keep editor fully inside the canvas viewport
-  ed.style.display = 'block';
-  // Measure actual editor height after rendering content
+
+  // ── Position editor (position:fixed, relative to window) ──────────────────
+  ed.style.display   = 'block';
+  ed.style.maxHeight = '10px'; // collapse first so we can measure zone cleanly
+
   requestAnimationFrame(() => {
-    const edW = ed.offsetWidth || 290;
-    const edH = ed.offsetHeight || 360;
-    const header = document.querySelector('.header');
-    const shelf = document.querySelector('.shelf');
-    const headerH = header ? header.offsetHeight : 52;
-    const shelfH = shelf ? shelf.offsetHeight : 185;
-    // Canvas area boundaries
-    const canvasTop = headerH + 8;
-    const canvasBottom = window.innerHeight - shelfH - 8;
-    const canvasLeft = 8;
-    const canvasRight = window.innerWidth - 8;
-    // Try to place near click, but fully inside canvas area
+    const header  = document.querySelector('.header');
+    const shelf   = document.querySelector('.shelf');
+    const headerB = header ? header.getBoundingClientRect().bottom : 52;
+    const shelfT  = shelf  ? shelf.getBoundingClientRect().top    : window.innerHeight - 160;
+    const pad = 8;
+
+    // Zone available between header and shelf
+    const zoneH = shelfT - headerB - pad * 2;
+    const zoneW = window.innerWidth - pad * 2;
+    const edW   = Math.min(290, zoneW);
+
+    // Apply constraints FIRST, then measure actual height
+    ed.style.width     = edW + 'px';
+    ed.style.maxHeight = Math.max(80, zoneH) + 'px';
+
+    // Now offsetHeight is the real clamped height
+    const edH = ed.offsetHeight;
+
+    // x: open to the right of click, flip left if no room
     let px = x + 14;
+    if (px + edW > window.innerWidth - pad) px = x - edW - 14;
+    px = Math.max(pad, Math.min(px, window.innerWidth - edW - pad));
+
+    // y: centre on click, strictly inside header↔shelf zone
     let py = y - edH / 2;
-    // Flip to left if too close to right edge
-    if (px + edW > canvasRight) px = x - edW - 14;
-    // Clamp horizontally
-    px = Math.max(canvasLeft, Math.min(px, canvasRight - edW));
-    // Clamp vertically — most important fix
-    py = Math.max(canvasTop, Math.min(py, canvasBottom - edH));
+    py = Math.max(headerB + pad, Math.min(py, shelfT - edH - pad));
+
     ed.style.left = px + 'px';
     ed.style.top  = py + 'px';
   });
@@ -1932,8 +2416,9 @@ window.ctxWireFrom = () => { st.wStart=st.ctxPart; setM('wire'); hideCtxMenu(); 
 window.ctxDel = () => { if(st.ctxPart){removePart(st.ctxPart);solve();} hideCtxMenu(); };
 function hideCtxMenu() { document.getElementById('ctx-menu').style.display='none'; }
 
-
-
+// ============================================================
+// SIMULATION ENGINE
+// ============================================================
 function solve() {
   st.parts.forEach(p => { p.pwr=false; p.vals._v=0; p.vals._i=0; });
   updateInfo();
@@ -1943,12 +2428,70 @@ function solve() {
   let srcs = st.parts.filter(p => Lib[p.type].s);
   srcs.forEach(s => { s.pwr=true; s.vals._v=parseFloat(s.vals.v||9); });
   let q=[...srcs], seen=new Set(srcs.map(s=>s.id));
-  
+
+  // Build connected groups and compute current per source
+  srcs.forEach(src => {
+    // Find all parts reachable from this source via wires
+    const srcV = parseFloat(src.vals.v || 9);
+    const reached = [];
+    const bfsQ = [src], bfsSeen = new Set([src.id]);
+    while(bfsQ.length) {
+      const cur = bfsQ.shift();
+      if((cur.type==='swi'||cur.type==='swi_n'||cur.type==='btn'||cur.type==='sw_2p')&&!cur.st&&cur!==src) continue;
+      st.wires.forEach(w=>{
+        const nb = (w.f===cur)?w.t:(w.t===cur)?w.f:null;
+        if(nb && !bfsSeen.has(nb.id)) { bfsSeen.add(nb.id); bfsQ.push(nb); reached.push(nb); }
+      });
+    }
+    // Total resistance in circuit
+    let totalR = 0;
+    reached.forEach(p=>{
+      if(p.type==='res'||p.type==='res_v') totalR+=parseFloat(p.vals.r||100);
+      else if(p.type==='pot')  totalR+=parseFloat(p.vals.r||10000)*(parseFloat(p.vals.pos||50)/100);
+      else if(p.type==='ldr')  totalR+=parseFloat(p.vals.r_dark||1000)*((100-parseFloat(p.vals.l||50))/100+0.01);
+      else if(p.type==='ntc'||p.type==='ptc') totalR+=parseFloat(p.vals.r||10000);
+      else if(p.type==='led'||p.type.startsWith('led_')) totalR+=parseFloat(p.vals.vf||2)/0.02;
+      else if(p.type==='dio'||p.type==='schottky') totalR+=parseFloat(p.vals.vf||0.7)/0.1;
+      else if(p.type==='ind'||p.type==='ind_c') totalR+=parseFloat(p.vals.r||0.5);
+      else totalR+=0.1; // wire/minimal resistance
+    });
+    if(totalR<0.01) totalR=0.01;
+    const circuitI = srcV / (totalR + parseFloat(src.vals.r||0.1));
+    src.vals._i = circuitI;
+    reached.forEach(p=>{ p.vals._i = circuitI; });
+  });
+
   while(q.length>0) {
     let c=q.shift();
     const srcV = c.vals._v||0;
     // Check if switch is open
     if((c.type==='swi'||c.type==='swi_n'||c.type==='btn')&&!c.st) continue;
+
+    // DPDT sw_2p: only pass to ONE side depending on st
+    // Neighbours split: powered side = common, others = A-group and B-group by wire order
+    if(c.type==='sw_2p') {
+      const neighbours = st.wires
+        .map(w=>(w.f===c)?w.t:(w.t===c)?w.f:null)
+        .filter(Boolean);
+      // powered neighbours = common side (already seen), unpowered = outputs
+      const outputs = neighbours.filter(n=>!seen.has(n.id));
+      if(outputs.length===0) continue;
+      // Split outputs into two groups by their index (odd/even wire order = A/B)
+      // st=true → first half (A), st=false → second half (B)
+      const half = Math.ceil(outputs.length/2);
+      const allowed = c.st ? outputs.slice(0,half) : outputs.slice(half);
+      allowed.forEach(n=>{
+        n.pwr=true;
+        n.vals._v=Math.max(0,srcV);
+        seen.add(n.id); q.push(n);
+      });
+      // Block the other side
+      const blocked = c.st ? outputs.slice(half) : outputs.slice(0,half);
+      blocked.forEach(n=>{ n.pwr=false; n.vals._v=0; n.vals._i=0; });
+      st.wires.forEach(w=>{ w.active=w.f.pwr&&w.t.pwr; });
+      continue;
+    }
+
     st.wires.forEach(w=>{
       let n=(w.f===c)?w.t:(w.t===c)?w.f:null;
       if(n&&!seen.has(n.id)){
@@ -1959,8 +2502,6 @@ function solve() {
         else if(n.type==='dio'||n.type==='schottky') vdrop=parseFloat(n.vals.vf||0.7);
         else if(n.type==='zener') vdrop=parseFloat(n.vals.vz||5.1);
         n.vals._v=Math.max(0, srcV-vdrop);
-        // Estimate current through resistor
-        if(n.type==='res') { const r=parseFloat(n.vals.r||100); n.vals._i=n.vals._v/r; }
         seen.add(n.id); q.push(n);
       }
     });
@@ -1972,7 +2513,203 @@ function solve() {
   
   // Update active wires
   st.wires.forEach(w=>{ w.active=w.f.pwr&&w.t.pwr; });
-  
+
+  // ── LOGIC SIMULATION ─────────────────────────────────────────
+  // Helper: get input HIGH/LOW state of a part based on its power & voltage
+  const logicHigh = p => p && p.pwr && (p.vals._v||0) > (parseFloat(p.vals.vcc||5)*0.6);
+
+  // For each logic gate, find connected neighbours and compute output
+  const logicTypes = new Set(['and','or','not','nand','nor','xor','ff_d','ff_sr','ff_jk','mux','demux','counter','pwm','clkgen','shreg','dec','probe','seg7']);
+  st.parts.filter(p=>logicTypes.has(p.type)&&p.pwr).forEach(gate=>{
+    const vcc = parseFloat(gate.vals.vcc||5);
+    const neighbours = st.wires
+      .map(w=>(w.f===gate)?w.t:(w.t===gate)?w.f:null)
+      .filter(Boolean);
+    const inputs  = neighbours.filter(n => n.pwr && n!==gate);
+    const outputs = neighbours.filter(n => !n.pwr);
+
+    const A = logicHigh(inputs[0]);
+    const B = logicHigh(inputs[1]);
+    const C = logicHigh(inputs[2]);
+    let out = false;
+
+    switch(gate.type) {
+      case 'and':   out = A && B; break;
+      case 'or':    out = A || B; break;
+      case 'not':   out = !A; break;
+      case 'nand':  out = !(A && B); break;
+      case 'nor':   out = !(A || B); break;
+      case 'xor':   out = A !== B; break;
+      case 'ff_d':
+        if(!gate._prevClk && B) gate._q = A;
+        gate._prevClk = B;
+        out = !!gate._q; break;
+      case 'ff_sr': // S=A R=B
+        if(A && !B) gate._q = true;
+        else if(!A && B) gate._q = false;
+        out = !!gate._q; break;
+      case 'ff_jk': // J=A K=B CLK=C
+        if(!gate._prevClk && C) {
+          if(A && !B) gate._q = true;
+          else if(!A && B) gate._q = false;
+          else if(A && B) gate._q = !gate._q;
+        }
+        gate._prevClk = C;
+        out = !!gate._q; break;
+      case 'mux':   out = C ? B : A; break;
+      case 'demux': // input A, sel B → out0 or out1
+        out = A; break;
+      case 'counter':
+        if(!gate._prevClk && A) gate._cnt = ((gate._cnt||0)+1) % (1<<(gate.vals.bits||4));
+        gate._prevClk = A;
+        out = !!((gate._cnt||0) & 1); break;
+      case 'shreg':
+        if(!gate._prevClk && B) {
+          gate._reg = (((gate._reg||0)<<1)|(A?1:0)) & ((1<<(gate.vals.bits||8))-1);
+        }
+        gate._prevClk = B;
+        out = !!((gate._reg||0) >> ((gate.vals.bits||8)-1) & 1); break;
+      case 'dec': {
+        const addr = (A?1:0)|(B?2:0)|(C?4:0);
+        gate._dec = addr;
+        out = !!(addr & 1); break;
+      }
+      case 'clkgen': {
+        const f = parseFloat(gate.vals.f||1);
+        out = (Date.now()*0.001*f)%1 < 0.5;
+        gate.vals._v = out ? vcc : 0;
+        break;
+      }
+      case 'pwm': {
+        const dc = parseFloat(gate.vals.dc||50)/100;
+        const f  = parseFloat(gate.vals.f||1000);
+        out = (Date.now()/1000*f % 1) < dc; break;
+      }
+      case 'probe': out = A; break;
+      case 'seg7': {
+        const v = inputs.reduce((acc,inp,i)=>acc|(logicHigh(inp)?1<<i:0),0);
+        gate.vals._out = v;
+        outputs.forEach(n=>{n.pwr=true;n.vals._v=vcc;});
+        return;
+      }
+    }
+
+    gate.vals._out = out ? 1 : 0;
+    gate.vals._v   = out ? vcc : 0;
+
+    if(outputs.length===0) return;
+    outputs.forEach(n=>{
+      n.pwr     = out;
+      n.vals._v = out ? vcc : 0;
+    });
+  });
+
+  // Re-mark wires after logic propagation
+  st.wires.forEach(w=>{ w.active=w.f.pwr&&w.t.pwr; });
+
+  // Fan effect: active fans reduce humidity AND temperature on nearby DHT sensors
+  const activeFans = st.parts.filter(p=>p.type==='fan'&&p.pwr);
+  const dhtSensors = st.parts.filter(p=>p.type==='dht');
+  dhtSensors.forEach(dht=>{
+    const nearFan = activeFans.find(f=>{
+      const dx=f.x-dht.x, dy=f.y-dht.y;
+      return Math.sqrt(dx*dx+dy*dy)<120;
+    });
+    if(nearFan) {
+      const fanSpd = parseFloat(nearFan.vals.spd||100)/100;
+      const baseH = parseFloat(dht.vals.h||50);
+      dht.vals._h = Math.max(0, baseH - fanSpd*30).toFixed(1);
+      const baseT = parseFloat(dht.vals.t||25);
+      dht.vals._t = (baseT - fanSpd*8).toFixed(1);
+    } else {
+      dht.vals._h = dht.vals.h;
+      dht.vals._t = undefined;
+    }
+  });
+
+  // ── PIR: detect nearby powered motors or MCUs (simulate motion) ──
+  st.parts.filter(p=>p.type==='pir'&&p.pwr).forEach(pir=>{
+    const nearMoving = st.parts.find(q=>q!==pir&&q.pwr&&(q.type==='motor'||q.type==='servo'||q.type==='step'||q.type==='fan')&&Math.hypot(q.x-pir.x,q.y-pir.y)<150);
+    pir.vals._det = nearMoving ? 1 : parseFloat(pir.vals.det||0);
+    pir.vals._v = pir.vals._det ? (pir.vals._v||3.3) : 0;
+  });
+
+  // ── MQ2: detect nearby gas-source (heater, lamp at high power) ──
+  st.parts.filter(p=>p.type==='mq2'&&p.pwr).forEach(mq=>{
+    const nearHeat = st.parts.find(q=>q!==mq&&q.pwr&&(q.type==='lamp'||q.type==='res')&&Math.hypot(q.x-mq.x,q.y-mq.y)<100);
+    const basePpm = parseFloat(mq.vals.ppm||0);
+    if(nearHeat) {
+      const heatFactor = nearHeat.type==='lamp' ? parseFloat(nearHeat.vals.w||60)/60 : 1;
+      mq.vals._ppm = Math.min(10000, basePpm + heatFactor * 150);
+    } else {
+      mq.vals._ppm = basePpm;
+    }
+  });
+
+  // ── HC-SR04: detect nearby objects (dist depends on proximity of other parts) ──
+  st.parts.filter(p=>p.type==='hcsr'&&p.pwr).forEach(hc=>{
+    const obstacles = st.parts.filter(q=>q!==hc&&Math.hypot(q.x-hc.x,q.y-hc.y)<200);
+    if(obstacles.length>0) {
+      const closest = obstacles.reduce((a,b)=>Math.hypot(b.x-hc.x,b.y-hc.y)<Math.hypot(a.x-hc.x,a.y-hc.y)?b:a);
+      const realDist = Math.hypot(closest.x-hc.x, closest.y-hc.y) * 0.15; // pixels → cm scale
+      hc.vals._dist = Math.max(2, Math.min(400, realDist));
+    } else {
+      hc.vals._dist = parseFloat(hc.vals.dist||20);
+    }
+  });
+
+  // ── Датчик Холла: detect nearby motor/relay (magnets) ──
+  st.parts.filter(p=>p.type==='hall'&&p.pwr).forEach(hall=>{
+    const nearMagnet = st.parts.find(q=>q!==hall&&q.pwr&&(q.type==='motor'||q.type==='relay'||q.type==='solenoid')&&Math.hypot(q.x-hall.x,q.y-hall.y)<100);
+    if(nearMagnet) {
+      const dist = Math.hypot(nearMagnet.x-hall.x, nearMagnet.y-hall.y);
+      hall.vals._b = Math.round(500 * (1 - dist/100));
+    } else {
+      hall.vals._b = parseFloat(hall.vals.b||0);
+    }
+  });
+
+  // ── DS18B20: detect nearby heat sources ──
+  st.parts.filter(p=>p.type==='ds18'&&p.pwr).forEach(ds=>{
+    const nearHeat = st.parts.filter(q=>q!==ds&&q.pwr&&(q.type==='lamp'||q.type==='res'||q.type==='motor')&&Math.hypot(q.x-ds.x,q.y-ds.y)<120);
+    const baseT = parseFloat(ds.vals.t||25);
+    const nearFan2 = activeFans.find(f=>Math.hypot(f.x-ds.x,f.y-ds.y)<120);
+    let deltaT = 0;
+    nearHeat.forEach(h=>{
+      const d = Math.hypot(h.x-ds.x,h.y-ds.y);
+      const factor = h.type==='lamp'?parseFloat(h.vals.w||60)/60:0.5;
+      deltaT += factor * (1 - d/120) * 20;
+    });
+    if(nearFan2) deltaT -= parseFloat(nearFan2.vals.spd||100)/100 * 10;
+    ds.vals._t = baseT + deltaT;
+  });
+
+  // ── Акселерометр: detect nearby vibrating motors ──
+  st.parts.filter(p=>p.type==='accel'&&p.pwr).forEach(acc=>{
+    const nearMotor = st.parts.find(q=>q!==acc&&q.pwr&&(q.type==='motor'||q.type==='fan')&&Math.hypot(q.x-acc.x,q.y-acc.y)<100);
+    if(nearMotor) {
+      const t = Date.now()*0.01;
+      const rpm = parseFloat(nearMotor.vals.rpm||3000)/3000;
+      acc.vals._x = parseFloat(acc.vals.x||0) + Math.sin(t*rpm)*0.5;
+      acc.vals._y = parseFloat(acc.vals.y||0) + Math.cos(t*rpm*1.3)*0.3;
+      acc.vals._z = parseFloat(acc.vals.z||1) + Math.sin(t*rpm*0.7)*0.2;
+    } else {
+      acc.vals._x = undefined; acc.vals._y = undefined; acc.vals._z = undefined;
+    }
+  });
+
+  // ── Датчик тиску: affected by solenoid/pump ──
+  st.parts.filter(p=>p.type==='press'&&p.pwr).forEach(pr=>{
+    const nearSolenoid = st.parts.find(q=>q!==pr&&q.pwr&&q.type==='solenoid'&&Math.hypot(q.x-pr.x,q.y-pr.y)<120);
+    const baseP = parseFloat(pr.vals.p||1013);
+    if(nearSolenoid) {
+      const t = Date.now()*0.002;
+      pr.vals._p = baseP + Math.sin(t)*30;
+    } else {
+      pr.vals._p = baseP;
+    }
+  });
+
   // Update multimeter reading
   if(typeof doMMRead==='function') doMMRead();
 
@@ -1985,7 +2722,9 @@ function solve() {
   }
 }
 
-
+// ============================================================
+// METERS
+// ============================================================
 function updateMeters() {
   if(!st.run) {
     ['volt-meter','amp-meter','watt-meter','freq-meter'].forEach(id=>document.getElementById(id).style.display='none');
@@ -2049,7 +2788,9 @@ function updateOscillo() {
   }
 }
 
-
+// ============================================================
+// RENDER
+// ============================================================
 function render() {
   const W=cvs.width, H=cvs.height;
   const style = getComputedStyle(document.body);
@@ -2095,7 +2836,7 @@ function render() {
   // Parts
   st.parts.forEach(p=>{
     const lib = Lib[p.type];
-    const active = st.run && p.pwr && (p.type!=='swi'&&p.type!=='swi_n'&&p.type!=='btn'||p.st);
+    const active = st.run && p.pwr && (p.type!=='swi'&&p.type!=='swi_n'&&p.type!=='btn'&&p.type!=='sw_2p'||p.st);
     const col = active ? (p.vals.col || lib.c) : '#64748b';
 
     ctx2.save();
@@ -2151,7 +2892,9 @@ function render() {
   requestAnimationFrame(render);
 }
 
-
+// ============================================================
+// CONTROLS
+// ============================================================
 function setM(m) {
   st.m=m;
   document.querySelectorAll('.header .btn').forEach(b=>b.classList.remove('active'));
@@ -2159,11 +2902,12 @@ function setM(m) {
   if(mb) mb.classList.add('active');
   cvs.className = m==='hand'?'hand-mode':m==='wire'?'wire-mode':'';
   if(m!=='wire') st.wStart=null;
+  syncMobMode(m);
 }
 function selectC(k) { st.sel=k; filterInv(Lib[k].g); setM('add'); }
 function toggleSim() {
   st.run=!st.run;
-  pBtn.textContent=st.run?'СТОП':' СТАРТ';
+  pBtn.textContent=st.run?' СТОП':' СТАРТ';
   pBtn.className='btn '+(st.run?'btn-stop btn-run on':'btn-run');
   document.getElementById('sim-dot').className='sim-indicator'+(st.run?' on':'');
   if(!st.run) st.oscData=[];
@@ -2177,7 +2921,9 @@ function clearAll() {
   if(confirm(t('clear_confirm'))) { st.parts=[]; st.wires=[]; st.active=null; closeEd(); solve(); updateInfo(); autoSave(); }
 }
 
-
+// ============================================================
+// SAVE / LOAD
+// ============================================================
 function autoSave() {
   try { localStorage.setItem('electrolab_scheme', JSON.stringify({parts:st.parts,wires:st.wires.map(w=>({fi:w.f.id,ti:w.t.id}))})); } catch(e){}
 }
@@ -2202,47 +2948,133 @@ function doLoad(e) {
 
 
 
+// ============================================================
+// MOBILE UI HELPERS
+// ============================================================
+function isMobile() { return window.innerWidth <= 768; }
+
+let mobMoreOpen = false;
+function toggleMobMore() {
+  mobMoreOpen = !mobMoreOpen;
+  const m = document.getElementById('mob-more-menu');
+  if(m) m.classList.toggle('visible', mobMoreOpen);
+  // update info in more menu
+  const pi = document.getElementById('mob-info-parts');
+  const zi = document.getElementById('mob-info-zoom');
+  if(pi) pi.textContent = st.parts.length + ' елем.';
+  if(zi) zi.textContent = Math.round(st.zoom*100) + '%';
+}
+function closeMobMore() {
+  mobMoreOpen = false;
+  const m = document.getElementById('mob-more-menu');
+  if(m) m.classList.remove('visible');
+}
+
+// Sync mobile toolbar mode highlights
+function syncMobMode(m) {
+  ['add','hand','wire'].forEach(mode => {
+    const b = document.getElementById('mob-m-'+mode);
+    if(b) b.classList.toggle('active', mode===m);
+  });
+}
+
+// Sync mobile START/STOP button
+function syncMobRun() {
+  const mb = document.getElementById('mob-p-btn');
+  if(!mb) return;
+  if(st.run) {
+    mb.innerHTML = '<span class="mob-icon">⏹</span>СТОП';
+    mb.classList.add('on');
+  } else {
+    mb.innerHTML = '<span class="mob-icon">▶</span>СТАРТ';
+    mb.classList.remove('on');
+  }
+  const md = document.getElementById('mob-sim-dot');
+  if(md) md.className = 'mob-sim-dot' + (st.run?' on':'');
+}
+
+// Close more menu when tapping canvas
+function initMobileEvents() {
+  const vp = document.getElementById('viewport');
+  if(vp) vp.addEventListener('pointerdown', () => { if(mobMoreOpen) closeMobMore(); }, {passive:true});
+  // Long-press on canvas = context menu (mobile alternative to right-click)
+  let longTimer = null;
+  if(vp) {
+    vp.addEventListener('pointerdown', e => {
+      if(isMobile()) {
+        longTimer = setTimeout(() => {
+          const wp = toWorld(e.offsetX, e.offsetY);
+          const found = findPart(wp.x, wp.y);
+          if(found) {
+            st.ctxPart = found;
+            const m = document.getElementById('ctx-menu');
+            const x = Math.min(e.clientX, window.innerWidth-170);
+            const y = Math.min(e.clientY, window.innerHeight-220);
+            m.style.display='block'; m.style.left=x+'px'; m.style.top=y+'px';
+          }
+        }, 500);
+      }
+    }, {passive:true});
+    vp.addEventListener('pointerup', () => clearTimeout(longTimer), {passive:true});
+    vp.addEventListener('pointermove', () => clearTimeout(longTimer), {passive:true});
+  }
+}
+
+// Update mob lang button
+function updateMobLang() {
+  const b = document.getElementById('mob-lang-item');
+  if(b) b.querySelector('.mi').textContent = curLang.toUpperCase();
+}
+
+window.toggleMobMore = toggleMobMore;
+window.closeMobMore = closeMobMore;
+
+
 const LANGS = {
   uk: {
     obj:"ОБ'ЄКТ",wire:"ДРІТ",hand:"РУКА",del:"ВИДАЛ",
-    clear:"ОЧИСТ",oscil:" ОСЦИЛ",theme:"ТЕМА",
-    start:"СТАРТ",stop:"СТОП",
-    parts:"ел.",wires:"дрт.", cat_all:"УСІ",cat_pwr:"ЖИВЛЕННЯ",cat_pas:"ПАСИВНІ",
-    cat_semi:" НАПІВПРОВІДНИКИ",cat_log:"ЛОГІКА",cat_met:"ПРИЛАДИ",
-    cat_rf:"МЕРЕЖА",cat_sens:"СЕНСОРИ",cat_mech:"МЕХАНІКА",cat_ctrl:" КЕРУВАННЯ",
+    clear:"🗑 ОЧИСТ",oscil:"ОСЦИЛ",mult:"МУЛЬТ",theme:"🎨 ТЕМА",
+    start:" СТАРТ",stop:" СТОП",
+    parts:"ел.",wires:"дрт.",
+    cat_all:"УСІ",cat_pwr:"ЖИВЛЕННЯ",cat_pas:"ПАСИВНІ",
+    cat_semi:"НАПІВПРОВІДНИКИ",cat_log:"ЛОГІКА",cat_met:"ПРИЛАДИ",
+    cat_rf:"МЕРЕЖА",cat_sens:"СЕНСОРИ",cat_mech:"МЕХАНІКА",cat_ctrl:"КЕРУВАННЯ",
     clear_confirm:"Очистити всю схему?",
     ctx_rot:"↻ Повернути",ctx_mirror:"⇄ Дзеркало",ctx_dupe:"⎘ Дублювати",
-    ctx_props:"⚙ Властивості",ctx_wire:"Дріт звідси",ctx_del:"🗑 Видалити",
+    ctx_props:"⚙ Властивості",ctx_wire:"〰 Дріт звідси",ctx_del:"🗑 Видалити",
     meter_v:"НАПРУГА",meter_a:"СТРУМ",meter_w:"ПОТУЖНІСТЬ",meter_hz:"ЧАСТОТА",
     unit_v:"Вольт",unit_a:"Ампер",unit_w:"Ват",unit_hz:"Гц",
+    mm_title:" МУЛЬТИМЕТР",oscillo_lbl:"ОСЦИЛОГРАФ",
   },
   en: {
     obj:"OBJECT",wire:"WIRE",hand:"HAND",del:"DELETE",
-    clear:"CLEAR",oscil:" OSCIL",theme:"THEME",
-    start:"START",stop:"STOP",
+    clear:"🗑 CLEAR",oscil:"OSCIL",mult:"METER",theme:"🎨 THEME",
+    start:" START",stop:" STOP",
     parts:"el.",wires:"wrs.",
-    cat_all:"ALL",cat_pwr:" POWER",cat_pas:"PASSIVE",
-    cat_semi:" SEMICONDUCTORS",cat_log:" LOGIC",cat_met:"METERS",
-    cat_rf:"WIRELESS",cat_sens:" SENSORS",cat_mech:" MECHANICAL",cat_ctrl:"CONTROL",
+    cat_all:"ALL",cat_pwr:"POWER",cat_pas:"PASSIVE",
+    cat_semi:"SEMICONDUCTORS",cat_log:"LOGIC",cat_met:"METERS",
+    cat_rf:"WIRELESS",cat_sens:"SENSORS",cat_mech:"MECHANICAL",cat_ctrl:"CONTROL",
     clear_confirm:"Clear all circuit?",
     ctx_rot:"↻ Rotate",ctx_mirror:"⇄ Mirror",ctx_dupe:"⎘ Duplicate",
     ctx_props:"⚙ Properties",ctx_wire:"〰 Wire from",ctx_del:"🗑 Delete",
     meter_v:"VOLTAGE",meter_a:"CURRENT",meter_w:"POWER",meter_hz:"FREQUENCY",
     unit_v:"Volt",unit_a:"Ampere",unit_w:"Watt",unit_hz:"Hz",
+    mm_title:" MULTIMETER",oscillo_lbl:"OSCILLOSCOPE",
   },
   de: {
     obj:"BAUTEIL",wire:"DRAHT",hand:"HAND",del:"LÖSCHEN",
-    clear:"LEEREN",oscil:" OSZI",theme:"THEMA",
-    start:"START",stop:"STOP",
+    clear:"🗑 LEEREN",oscil:"OSZI",mult:"MESSGER.",theme:"🎨 THEMA",
+    start:" START",stop:" STOP",
     parts:"Bt.",wires:"Dr.",
-    cat_all:"ALLE",cat_pwr:" STROM",cat_pas:"PASSIV",
-    cat_semi:"HALBLEITER",cat_log:" LOGIK",cat_met:"MESSGER.",
-    cat_rf:"HF",cat_sens:" SENSOREN",cat_mech:" MECHANIK",cat_ctrl:"STEUERUNG",
+    cat_all:"ALLE",cat_pwr:"STROM",cat_pas:"PASSIV",
+    cat_semi:"HALBLEITER",cat_log:"LOGIK",cat_met:"MESSGER.",
+    cat_rf:"NETZWERK",cat_sens:"SENSOREN",cat_mech:"MECHANIK",cat_ctrl:"STEUERUNG",
     clear_confirm:"Gesamten Schaltkreis löschen?",
     ctx_rot:"↻ Drehen",ctx_mirror:"⇄ Spiegeln",ctx_dupe:"⎘ Duplizieren",
     ctx_props:"⚙ Eigenschaften",ctx_wire:"〰 Draht von hier",ctx_del:"🗑 Löschen",
     meter_v:"SPANNUNG",meter_a:"STROM",meter_w:"LEISTUNG",meter_hz:"FREQUENZ",
     unit_v:"Volt",unit_a:"Ampere",unit_w:"Watt",unit_hz:"Hz",
+    mm_title:" MULTIMETER",oscillo_lbl:"OSZILLOSKOP",
   }
 };
 let curLang = 'uk';
@@ -2251,13 +3083,19 @@ function t(k){ return (LANGS[curLang]||LANGS.uk)[k]||k; }
 function applyLang() {
   const L = LANGS[curLang]||LANGS.uk;
   const setTxt = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
-  const mAdd=document.getElementById('m-add'); if(mAdd) mAdd.innerHTML=''+L.obj;
-  const mWire=document.getElementById('m-wire'); if(mWire) mWire.innerHTML=''+L.wire;
-  const mHand=document.getElementById('m-hand'); if(mHand) mHand.innerHTML=''+L.hand;
-  const mDel=document.getElementById('m-del'); if(mDel) mDel.innerHTML='✂ '+L.del;
+  const mAdd=document.getElementById('m-add'); if(mAdd) mAdd.innerHTML='📦 <span class="btn-text">'+L.obj+'</span>';
+  const mWire=document.getElementById('m-wire'); if(mWire) mWire.innerHTML='〰 <span class="btn-text">'+L.wire+'</span>';
+  const mHand=document.getElementById('m-hand'); if(mHand) mHand.innerHTML='✋ <span class="btn-text">'+L.hand+'</span>';
+  const mDel=document.getElementById('m-del'); if(mDel) mDel.innerHTML='✂ <span class="btn-text">'+L.del+'</span>';
   const pb=document.getElementById('p-btn');
   if(pb) pb.textContent = st.run ? '⏹ '+L.stop : '▶ '+L.start;
   const lb=document.getElementById('lang-btn'); if(lb) lb.textContent=' '+curLang.toUpperCase();
+  // Oscillo & Multimeter buttons
+  const btnOscil=document.getElementById('btn-oscil'); if(btnOscil) btnOscil.innerHTML='📊 <span class="btn-text">'+L.oscil+'</span>';
+  const btnMult=document.getElementById('btn-mult');   if(btnMult)  btnMult.innerHTML='🔌 <span class="btn-text">'+L.mult+'</span>';
+  // Multimeter panel title & oscillo label
+  const mmTitle=document.getElementById('mm-title'); if(mmTitle) mmTitle.textContent=L.mm_title;
+  const oscLbl=document.querySelector('.oscillo-label'); if(oscLbl) oscLbl.textContent=L.oscillo_lbl;
   // Filter bar
   const catKeys=['cat_all','cat_pwr','cat_pas','cat_semi','cat_log','cat_met','cat_rf','cat_sens','cat_mech','cat_ctrl'];
   document.querySelectorAll('.f-btn').forEach((b,i)=>{ if(i<catKeys.length) b.textContent=L[catKeys[i]]||b.textContent; });
@@ -2276,6 +3114,7 @@ function cycleLang() {
   const order=['uk','en','de'];
   curLang=order[(order.indexOf(curLang)+1)%order.length];
   applyLang();
+  updateMobLang();
 }
 
 
@@ -2292,7 +3131,31 @@ const mm = {
 function toggleMultimeter() {
   const el = document.getElementById('multimeter');
   if(!el) return;
-  el.style.display = el.style.display==='none' ? 'block' : 'none';
+  const show = el.style.display === 'none' || el.style.display === '';
+  el.style.display = show ? 'block' : 'none';
+  if(show) positionMultimeter();
+}
+
+function positionMultimeter() {
+  const el = document.getElementById('multimeter');
+  if(!el) return;
+  const header  = document.querySelector('.header');
+  const shelf   = document.querySelector('.shelf');
+  const headerB = header ? header.getBoundingClientRect().bottom : 52;
+  const shelfT  = shelf  ? shelf.getBoundingClientRect().top    : window.innerHeight - 160;
+  const pad = 8;
+
+  const zoneH = shelfT - headerB - pad * 2;
+  // width: max 230px but never more than half the screen (so it doesn't cover everything)
+  const w = Math.min(230, Math.floor(window.innerWidth * 0.48));
+
+  el.style.position  = 'fixed';
+  el.style.top       = (headerB + pad) + 'px';
+  el.style.right     = pad + 'px';
+  el.style.left      = 'auto';
+  el.style.width     = w + 'px';
+  el.style.maxHeight = Math.max(80, zoneH) + 'px';
+  el.style.overflowY = 'auto';
 }
 
 function setMM(mode) {
@@ -2389,6 +3252,12 @@ function connectProbe(part) {
   if(mm.plus && mm.minus) {
     if(s) s.textContent='✅ '+mm.plus.type+' ↔ '+mm.minus.type;
     doMMRead();
+  } else if(mm.plus) {
+    if(s) s.textContent='📍 '+mm.plus.type+' vs GND (або підкл. − щуп)';
+    doMMRead();
+  } else if(mm.minus) {
+    if(s) s.textContent='📍 GND vs '+mm.minus.type+' (або підкл. + щуп)';
+    doMMRead();
   } else {
     if(s) s.textContent = which==='plus' ? 'Тепер підключіть − щуп' : 'Тепер підключіть + щуп';
   }
@@ -2397,57 +3266,233 @@ function connectProbe(part) {
 function doMMRead() {
   const rdg=document.getElementById('mm-reading');
   const bar=document.getElementById('mm-bar');
+  const unitLbl=document.getElementById('mm-unit-lbl');
   if(!rdg) return;
 
-  if(!mm.plus || !mm.minus) { rdg.textContent='- - -'; if(bar) bar.style.width='0%'; return; }
+  if(!mm.plus && !mm.minus) { rdg.textContent='- - -'; if(bar) bar.style.width='0%'; return; }
   if(!st.run) { rdg.textContent='0.00'; rdg.style.color='#4a7a99'; if(bar) bar.style.width='0%'; return; }
   rdg.style.color='#00ff88';
 
-  const vp = mm.plus.vals._v  !== undefined ? parseFloat(mm.plus.vals._v)  : parseFloat(mm.plus.vals.v||0);
-  const vm = mm.minus.vals._v !== undefined ? parseFloat(mm.minus.vals._v) : parseFloat(mm.minus.vals.v||0);
-  const ip = mm.plus.vals._i  !== undefined ? parseFloat(mm.plus.vals._i)  : 0;
+  const plusPart  = mm.plus  || null;
+  const minusPart = mm.minus || null;
 
-  let reading=0, text='', pct=0;
+  const target = plusPart || minusPart;
 
+  // ── Universal voltage getter ──────────────────────────────────
+  function getV(part) {
+    if(!part) return 0;
+    if(Lib[part.type] && Lib[part.type].s) return parseFloat(part.vals.v || 0);
+    return part.vals._v !== undefined ? parseFloat(part.vals._v) : parseFloat(part.vals.v || 0);
+  }
+
+  // ── Universal resistance getter — covers ALL component types ─
+  function getR(part) {
+    if(!part) return 0;
+    const v = part.vals, t = part.type;
+    // Resistors & variants
+    if(v.r !== undefined && (t==='res'||t==='res_v'||t==='ntc'||t==='ptc'||t==='relay'||t==='ind'||t==='ind_c')) {
+      if(t==='ntc'||t==='ptc') {
+        const r0=parseFloat(v.r||10000), T=parseFloat(v.t||25);
+        const beta=3977;
+        return r0*Math.exp(beta*(1/(T+273.15)-1/298.15));
+      }
+      if(t==='ind'||t==='ind_c') return parseFloat(v.r||0.5); // DC resistance of coil
+      return parseFloat(v.r||0);
+    }
+    // Potentiometer (wiper position)
+    if(t==='pot'||t==='pot2') return parseFloat(v.r||10000)*(parseFloat(v.pos||50)/100);
+    // LDR (light-dependent)
+    if(t==='ldr') {
+      const l=parseFloat(v.l||50), rd=parseFloat(v.r_dark||1000000);
+      return rd*Math.pow(10/Math.max(0.1,l),0.8);
+    }
+    // Capacitors (Xc at 50 Hz)
+    if(t==='cap'||t==='cap_e'||t==='cap_t') {
+      const c=parseFloat(v.c||10)*1e-6;
+      return 1/(2*Math.PI*50*c);
+    }
+    // Inductors (Xl at 50 Hz)
+    if(t==='ind'||t==='ind_c') {
+      const l=parseFloat(v.l||1)*1e-3;
+      return 2*Math.PI*50*l;
+    }
+    // Diodes (forward resistance approx)
+    if(t==='dio'||t==='schottky'||t==='led'||t.startsWith('led_')) {
+      const vf=parseFloat(v.vf||2), iF=parseFloat(v.if||0.02)||0.02;
+      return vf/iF;
+    }
+    if(t==='zener') return parseFloat(v.vz||5.1)/0.01;
+    // Transistors (Rce sat or Rds on)
+    if(t==='npn'||t==='pnp'||t==='igbt') return parseFloat(v.vce||0.2)/0.1;
+    if(t==='nmos'||t==='pmos') return parseFloat(v.rds||5);
+    // Bead, fuse, cb, crystal
+    if(t==='bead') return parseFloat(v.z||600);
+    if(t==='fuse'||t==='cb') return 0.01;
+    if(t==='crystal') return 1; // series resistance
+    // Switches
+    if(t==='swi'||t==='swi_n'||t==='btn'||t==='sw_2p') return part.st ? 0.01 : 9999999;
+    // Transformer (primary winding)
+    if(t==='trans') return 1;
+    // Motor/servo/step (winding resistance estimate)
+    if(t==='motor'||t==='servo'||t==='step') return parseFloat(v.v||12)/((parseFloat(v.rpm||3000)/1000)*0.5+0.1);
+    // Fan
+    if(t==='fan') return 10;
+    // Solenoid
+    if(t==='solenoid') return parseFloat(v.r||50)||50;
+    // Optocoupler (input LED)
+    if(t==='optoc') return 100;
+    // Hall, PIR, sensors — internal resistance
+    if(t==='hall'||t==='pir'||t==='dht'||t==='mq2'||t==='hcsr'||t==='ds18'||t==='accel'||t==='press'||t==='photo') return 10000;
+    // Thermistor NTC/PTC computed above; fallback
+    return 0;
+  }
+
+  // ── Universal frequency getter ────────────────────────────────
+  function getHz(part) {
+    if(!part) return 0;
+    const t=part.type, v=part.vals;
+    if(t==='ac') return parseFloat(v.f||50);
+    if(t==='clkgen') return parseFloat(v.f||1);
+    if(t==='pwm') return parseFloat(v.f||1000);
+    if(t==='crystal') return parseFloat(v.f||16)*1e6;
+    if(t==='555') {
+      const r1=parseFloat(v.r1||10)*1000, r2=parseFloat(v.r2||10)*1000, c=parseFloat(v.c||1)*1e-6;
+      return 1.44/((r1+2*r2)*c);
+    }
+    if(t==='motor'||t==='fan') return parseFloat(v.rpm||3000)/60;
+    if(t==='buz') return parseFloat(v.f||1000);
+    return 0;
+  }
+
+  const vp = getV(plusPart);
+  const vm = getV(minusPart);
+  const ip = plusPart ? (parseFloat(plusPart.vals._i||0)) : (minusPart ? parseFloat(minusPart.vals._i||0) : 0);
+
+  let reading=0, text='', pct=0, hint='';
+
+  // ── VOLTAGE ───────────────────────────────────────────────────
   if(mm.mode==='V') {
-    reading = Math.abs(vp - vm);
-    if(mm.acMode){ const src=st.parts.find(p=>p.type==='ac'&&p.pwr); if(src) reading=parseFloat(src.vals.v||220)/Math.sqrt(2); }
+    const isSameSrc = plusPart && minusPart && plusPart===minusPart && Lib[plusPart.type]?.s;
+    reading = isSameSrc ? parseFloat(plusPart.vals.v||0) : Math.abs(vp-vm);
+    if(mm.acMode) { const src=st.parts.find(p=>p.type==='ac'&&p.pwr); if(src) reading=parseFloat(src.vals.v||220)/Math.sqrt(2); }
     if(reading>=1000) text=(reading/1000).toFixed(3)+' kV';
-    else if(reading>=1)   text=reading.toFixed(3)+' V';
+    else if(reading>=1) text=reading.toFixed(3)+' V';
     else if(reading>=0.001) text=(reading*1000).toFixed(2)+' mV';
     else text=(reading*1000000).toFixed(1)+' µV';
-    pct=Math.min(100,reading/((mm.plus.vals.v||mm.minus.vals.v||9)*1.2)*100);
+    // Extra hints per type
+    if(target) {
+      const t=target.type;
+      if(t==='lipo'||t==='bat'||t==='bat3v'||t==='bat5v'||t==='bat12') {
+        const cap=parseFloat(target.vals.cap||0);
+        hint = cap ? `ємність: ${cap>=1000?(cap/1000).toFixed(1)+' Аг':cap+' мАг'}` : '';
+      } else if(t==='led'||t.startsWith('led_')) hint='Vf='+parseFloat(target.vals.vf||2)+' В';
+      else if(t==='zener') hint='Vz='+parseFloat(target.vals.vz||5.1)+' В';
+      else if(t==='cap'||t==='cap_e'||t==='cap_t') hint='макс '+parseFloat(target.vals.v||50)+' В';
+    }
+    if(unitLbl) unitLbl.textContent = 'Вольт' + (hint?' | '+hint:'');
+    const refV=(plusPart?.vals.v)?parseFloat(plusPart.vals.v):(minusPart?.vals.v)?parseFloat(minusPart.vals.v):9;
+    pct=Math.min(100,reading/(Math.max(1,refV)*1.1)*100);
 
+  // ── CURRENT ───────────────────────────────────────────────────
   } else if(mm.mode==='A') {
     reading = Math.abs(ip);
-    if(reading>=1)         text=reading.toFixed(4)+' A';
+    // For sources, derive I from circuit if _i not set
+    if(reading===0 && target && Lib[target.type]?.s) {
+      const srcV=parseFloat(target.vals.v||9);
+      const totalR=st.parts.filter(p=>p!==target&&p.pwr).reduce((acc,p)=>acc+Math.max(0.01,getR(p)),0.01);
+      reading=srcV/totalR;
+    }
+    if(reading>=1)          text=reading.toFixed(4)+' A';
     else if(reading>=0.001) text=(reading*1000).toFixed(3)+' mA';
     else                    text=(reading*1000000).toFixed(2)+' µA';
-    pct=Math.min(100,reading/0.1*100);
+    if(target) {
+      const t=target.type;
+      if(t==='led'||t.startsWith('led_')) hint='ном. '+parseFloat(target.vals.if||20)+' мА';
+      else if(t==='motor'||t==='servo') hint='@ '+parseFloat(target.vals.v||12)+' В';
+      else if(t==='fuse'||t==='cb') hint='макс '+parseFloat(target.vals.i||1)+' А';
+    }
+    if(unitLbl) unitLbl.textContent='Ампер'+(hint?' | '+hint:'');
+    pct=Math.min(100,reading/Math.max(0.001,reading+0.01)*80);
 
+  // ── RESISTANCE / IMPEDANCE ────────────────────────────────────
   } else if(mm.mode==='O') {
-    // Read resistance from whichever part has it
-    const rp=mm.plus.vals.r||mm.plus.vals.r_dark;
-    const rm=mm.minus.vals.r||mm.minus.vals.r_dark;
-    reading=parseFloat(rp||rm||0);
-    if(!st.run||(!mm.plus.pwr&&!mm.minus.pwr)) reading=parseFloat(rp||rm||0);
+    // Use both probes if available (series), else single
+    const r1 = target ? getR(target) : 0;
+    const r2 = (plusPart && minusPart && plusPart!==minusPart) ? getR(minusPart) : 0;
+    reading = r1 + r2;
+
+    // Inductors: show Xl + DC-R label
+    if(target && (target.type==='ind'||target.type==='ind_c')) {
+      const l=parseFloat(target.vals.l||1)*1e-3;
+      const xl=2*Math.PI*50*l;
+      const dcr=parseFloat(target.vals.r||0.5);
+      hint=`Xl(50Гц)=${xl>=1000?(xl/1000).toFixed(1)+'kΩ':xl.toFixed(1)+'Ω'}  DCR=${dcr}Ω`;
+      reading=dcr; // ohmmeter measures DC resistance
+    }
+    // Capacitors: show Xc label
+    if(target && (target.type==='cap'||target.type==='cap_e'||target.type==='cap_t')) {
+      const c=parseFloat(target.vals.c||10)*1e-6;
+      const xc=1/(2*Math.PI*50*c);
+      hint=`Xc(50Гц)=${xc>=1000?(xc/1000).toFixed(1)+'kΩ':xc.toFixed(1)+'Ω'}`;
+      reading=xc;
+    }
+    // Diodes: show Vf
+    if(target && (target.type==='dio'||target.type==='schottky'||target.type==='led'||target.type.startsWith('led_'))) {
+      hint='Vf='+parseFloat(target.vals.vf||2)+' В';
+    }
+    // Transistors
+    if(target && (target.type==='npn'||target.type==='pnp')) {
+      hint='β='+parseFloat(target.vals.hfe||200);
+    }
+    if(target && (target.type==='nmos'||target.type==='pmos')) {
+      hint='Vth='+parseFloat(target.vals.vth||2)+' В';
+    }
+    // Switches: show open/closed
+    if(target && (target.type==='swi'||target.type==='btn'||target.type==='sw_2p'||target.type==='relay')) {
+      hint = target.st ? '● замкнений' : '○ розімкнений';
+      reading = target.st ? 0.01 : 9999999;
+    }
+    // Sensors
+    if(target && target.type==='ntc') {
+      const T=parseFloat(target.vals.t||25);
+      hint='T='+T+'°C';
+    }
+    if(target && target.type==='ldr') {
+      hint='освіт.='+parseFloat(target.vals.l||50)+'%';
+    }
+
     if(reading>=1000000)   text=(reading/1000000).toFixed(3)+' MΩ';
     else if(reading>=1000) text=(reading/1000).toFixed(3)+' kΩ';
+    else if(reading<0.1)   text='~0 Ω (пров.)';
     else                   text=reading.toFixed(1)+' Ω';
+    if(unitLbl) unitLbl.textContent='Ом'+(hint?' | '+hint:'');
     pct=Math.min(100,Math.log10(Math.max(1,reading))/7*100);
 
+  // ── FREQUENCY ─────────────────────────────────────────────────
   } else if(mm.mode==='Hz') {
-    const src=st.parts.find(p=>p.type==='ac'&&p.pwr);
-    reading=src?parseFloat(src.vals.f||50):0;
-    if(reading>=1000) text=(reading/1000).toFixed(3)+' kHz';
+    // Check probed part first, then search active sources
+    reading = target ? getHz(target) : 0;
+    if(reading===0) {
+      const src=st.parts.find(p=>p.pwr&&getHz(p)>0);
+      if(src) reading=getHz(src);
+    }
+    if(target) {
+      const t=target.type;
+      if(t==='crystal') hint='кварц '+parseFloat(target.vals.f||16)+' МГц';
+      else if(t==='555') hint='астабільний';
+      else if(t==='pwm') hint='ШІМ duty='+parseFloat(target.vals.dc||50)+'%';
+      else if(t==='motor'||t==='fan') hint='обертів/с';
+    }
+    if(reading>=1000000) text=(reading/1000000).toFixed(3)+' MHz';
+    else if(reading>=1000) text=(reading/1000).toFixed(3)+' kHz';
     else text=reading.toFixed(2)+' Hz';
+    if(unitLbl) unitLbl.textContent='Герц'+(hint?' | '+hint:'');
     pct=Math.min(100,reading/1000*100);
   }
 
   rdg.textContent = text || '0.000';
   if(bar) bar.style.width=pct+'%';
 
-  // History
   mm.history.push(reading);
   if(mm.history.length>80) mm.history.shift();
   drawMMHistory();
