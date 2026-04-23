@@ -7,7 +7,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
 
-/* ── TOKENS ─────────────────────────────────────────────────────────────── */
+
 :root {
   --bg:#030712; --panel:#0d1b2a; --panel2:#112240;
   --accent:#00d4ff; --accent2:#7c3aed; --wire-on:#00ff88;
@@ -24,6 +24,7 @@
 /* ── RESET ───────────────────────────────────────────────────────────────── */
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0;
   -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; }
+input[type=number], input[type=text] { -webkit-user-select:text; user-select:text; }
 
 body {
   background:var(--bg); color:var(--text);
@@ -96,6 +97,13 @@ canvas#mc  { display:block; width:100%; height:100%; }
 .prop-row label { display:block; font-size:11px; color:var(--muted); margin-bottom:3px;
                   font-weight:600; letter-spacing:.5px; }
 .prop-row .val  { font-family:'Share Tech Mono',monospace; color:var(--accent); font-size:11px; }
+.prop-row .val-input {
+  font-family:'Share Tech Mono',monospace; color:var(--accent); font-size:11px;
+  background:none; border:none; border-bottom:1px solid var(--accent);
+  width:60px; text-align:right; cursor:text; padding:0 2px;
+  -webkit-user-select:text; user-select:text;
+}
+.prop-row .val-input:focus { outline:none; background:var(--panel2); border-radius:4px; border-color:var(--accent2); }
 .prop-row input[type=range]  { width:100%; accent-color:var(--accent); cursor:pointer; }
 .prop-row input[type=color]  { width:100%; height:36px; border-radius:6px; border:1px solid var(--border); }
 .prop-row input[type=text],
@@ -141,9 +149,16 @@ canvas#mc  { display:block; width:100%; height:100%; }
 .filter-bar {
   display:flex; overflow-x:auto; padding:5px 8px; gap:4px;
   background:var(--bg); border-bottom:1px solid var(--border);
-  scrollbar-width:none; -webkit-overflow-scrolling:touch; flex-shrink:0;
+  scrollbar-width:thin; scrollbar-color:var(--border) transparent;
+  -webkit-overflow-scrolling:touch; flex-shrink:0;
 }
-.filter-bar::-webkit-scrollbar { display:none; }
+.filter-bar::-webkit-scrollbar { height:3px; }
+.filter-bar::-webkit-scrollbar-track { background:transparent; }
+.filter-bar::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+@media (hover:none) {
+  .filter-bar { scrollbar-width:none; }
+  .filter-bar::-webkit-scrollbar { display:none; }
+}
 .f-btn {
   padding:4px 10px; background:var(--panel2); border:1px solid var(--border);
   border-radius:20px; font-size:clamp(8px,1.8vw,10px); white-space:nowrap;
@@ -155,9 +170,18 @@ canvas#mc  { display:block; width:100%; height:100%; }
   flex:1; display:flex; overflow-x:scroll; overflow-y:hidden;
   padding:8px 10px; gap:8px; scroll-snap-type:x proximity;
   -webkit-overflow-scrolling:touch; touch-action:pan-x;
-  scrollbar-width:none;
+  scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
 }
-.shelf-scroll::-webkit-scrollbar { display:none; }
+.shelf-scroll::-webkit-scrollbar { height:4px; }
+.shelf-scroll::-webkit-scrollbar-track { background:transparent; }
+.shelf-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+.shelf-scroll::-webkit-scrollbar-thumb:hover { background:var(--muted); }
+/* On touch devices hide the scrollbar */
+@media (hover:none) {
+  .shelf-scroll { scrollbar-width:none; }
+  .shelf-scroll::-webkit-scrollbar { display:none; }
+}
 .card {
   min-width:clamp(68px,18vw,86px);
   height:clamp(80px,15vh,100px);
@@ -205,6 +229,32 @@ canvas#mc  { display:block; width:100%; height:100%; }
 .mm-mode.active { background:var(--accent); color:#000; border-color:var(--accent); }
 .mm-probe-btn { transition:all .15s; }
 .mm-probe-btn:hover { filter:brightness(1.3); }
+
+/* ── WIRE PICKER ─────────────────────────────────────────────── */
+.wp-btn {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding:5px 6px; background:var(--panel2); border:2px solid var(--border);
+  border-radius:8px; cursor:pointer; color:var(--muted); transition:all .15s;
+  min-width:50px; flex:1;
+}
+.wp-btn span { font-size:8px; font-weight:700; letter-spacing:.5px; }
+.wp-btn:hover { border-color:var(--accent); color:var(--text); }
+.wp-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(0,212,255,.12); }
+.wc-dot {
+  width:22px; height:22px; border-radius:50%; cursor:pointer;
+  border:2px solid transparent; transition:transform .12s,border-color .12s;
+  flex-shrink:0;
+}
+.wc-dot:hover { transform:scale(1.2); }
+.wc-dot.active { border-color:#fff !important; outline:2px solid rgba(255,255,255,.3); outline-offset:1px; }
+.wm-btn {
+  padding:4px 8px; background:var(--panel2); border:1.5px solid var(--border);
+  border-radius:6px; cursor:pointer; color:var(--muted);
+  font-size:9px; font-weight:700; font-family:'Rajdhani',sans-serif;
+  transition:all .15s; white-space:nowrap;
+}
+.wm-btn:hover { border-color:var(--accent); color:var(--text); }
+.wm-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(0,212,255,.12); }
 
 /* ── CURSOR MODES ────────────────────────────────────────────────────────── */
 .wire-mode         { cursor:crosshair; }
@@ -298,6 +348,60 @@ canvas#mc  { display:block; width:100%; height:100%; }
     <span id="wire-count">0 дрт.</span>
     <span id="zoom-info">100%</span>
   </div>
+</div>
+
+<!-- ── WIRE STYLE PICKER ──────────────────────────────────────── -->
+<div id="wire-picker" style="display:none;position:fixed;z-index:1500;background:var(--panel);border:2px solid var(--accent);border-radius:14px;padding:10px 12px;box-shadow:0 8px 40px #000c;font-family:Rajdhani,sans-serif;top:calc(var(--hh,48px) + 8px);left:50%;transform:translateX(-50%);flex-direction:column;gap:8px;width:340px;min-width:340px;max-width:340px;align-items:stretch;box-sizing:border-box;">
+
+  <!-- Row 1: wire routing type -->
+  <div style="font-size:9px;color:var(--muted);letter-spacing:1px;font-weight:700;">МАРШРУТ</div>
+  <div style="display:flex;gap:5px;">
+    <div class="wp-btn active" id="wt-ortho" onclick="setWireType('ortho')" title="Авто Г-кути">
+      <svg width="34" height="26" viewBox="0 0 34 26"><polyline points="2,13 19,13 19,24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Авто</span>
+    </div>
+    <div class="wp-btn" id="wt-straight" onclick="setWireType('straight')" title="Пряма лінія">
+      <svg width="34" height="26" viewBox="0 0 34 26"><line x1="2" y1="13" x2="32" y2="13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <span>Пряма</span>
+    </div>
+    <div class="wp-btn" id="wt-diag" onclick="setWireType('diag')" title="45° діагональ + горизонталь">
+      <svg width="34" height="26" viewBox="0 0 34 26"><polyline points="2,24 14,12 32,12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>45°+Г</span>
+    </div>
+    <div class="wp-btn" id="wt-bus" onclick="setWireType('bus')" title="Шина живлення">
+      <svg width="34" height="26" viewBox="0 0 34 26"><line x1="2" y1="13" x2="32" y2="13" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg>
+      <span>Шина</span>
+    </div>
+    <div class="wp-btn" id="wt-manual" onclick="setWireType('manual')" title="Ручний — клікай по клітинках">
+      <svg width="34" height="26" viewBox="0 0 34 26"><polyline points="2,24 2,10 18,10 18,4 32,4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="2" cy="24" r="2.5" fill="currentColor"/><circle cx="2" cy="10" r="2.5" fill="currentColor"/><circle cx="18" cy="10" r="2.5" fill="currentColor"/><circle cx="18" cy="4" r="2.5" fill="currentColor"/><circle cx="32" cy="4" r="2.5" fill="currentColor"/></svg>
+      <span>Ручний</span>
+    </div>
+  </div>
+
+  <!-- Row 2: color -->
+  <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+    <span style="font-size:9px;color:var(--muted);letter-spacing:1px;font-weight:700;white-space:nowrap;">КОЛІР</span>
+    <div class="wc-dot active" id="wc-default" onclick="setWireColor('default')" style="background:#475569;" title="Стандартний"></div>
+    <div class="wc-dot" id="wc-red"    onclick="setWireColor('#dc2626')" style="background:#dc2626;" title="Червоний (фаза/+)"></div>
+    <div class="wc-dot" id="wc-blue"   onclick="setWireColor('#2563eb')" style="background:#2563eb;" title="Синій (нейтраль/-)"></div>
+    <div class="wc-dot" id="wc-yellow" onclick="setWireColor('#ca8a04')" style="background:#ca8a04;" title="Жовтий (сигнал)"></div>
+    <div class="wc-dot" id="wc-green"  onclick="setWireColor('#16a34a')" style="background:#16a34a;" title="Зелений (GND)"></div>
+    <div class="wc-dot" id="wc-orange" onclick="setWireColor('#ea580c')" style="background:#ea580c;" title="Помаранч (12В)"></div>
+    <div class="wc-dot" id="wc-purple" onclick="setWireColor('#7c3aed')" style="background:#7c3aed;" title="Фіолет (дані)"></div>
+    <div class="wc-dot" id="wc-white"  onclick="setWireColor('#94a3b8')" style="background:#94a3b8;" title="Сірий (екран)"></div>
+  </div>
+
+  <!-- Row 3: material -->
+  <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+    <span style="font-size:9px;color:var(--muted);letter-spacing:1px;font-weight:700;white-space:nowrap;">МАТЕРІАЛ</span>
+    <div class="wm-btn active" id="wm-cu"  onclick="setWireMat('cu')"  title="Мідь — найкраща провідність">🟤 Мідь</div>
+    <div class="wm-btn" id="wm-al"  onclick="setWireMat('al')"  title="Алюміній — 61% від міді">⚪ Алюм.</div>
+    <div class="wm-btn" id="wm-ni"  onclick="setWireMat('ni')"  title="Нікель — 25% від міді">🔵 Нікель</div>
+    <div class="wm-btn" id="wm-ag"  onclick="setWireMat('ag')"  title="Срібло — 106% від міді">⭐ Срібло</div>
+    <div class="wm-btn" id="wm-w"   onclick="setWireMat('w')"   title="Вольфрам — 31% від міді">⬛ Вольфр.</div>
+  </div>
+
+  <div id="wire-hint" style="font-size:9px;color:var(--accent);text-align:center;min-height:13px;font-family:'Share Tech Mono',monospace;"></div>
 </div>
 
 <div id="viewport">
@@ -438,7 +542,9 @@ canvas#mc  { display:block; width:100%; height:100%; }
 <div class="tooltip" id="tooltip"></div>
 
 <script>
-
+// ============================================================
+// БІБЛІОТЕКА КОМПОНЕНТІВ (60+ елементів)
+// ============================================================
 const Lib = {
   // ===== ЖИВЛЕННЯ (PWR) =====
   bat:   { g:'PWR', n:'Батарея DC',    svg: drawBat,   c:'#fbbf24', s:true,  pins:2, props:{ v:{n:'Напруга (В)',v:9,min:0.1,max:500,step:0.1}, r:{n:'Внутр. опір (Ом)',v:0.1,min:0,max:10,step:0.1} } },
@@ -451,7 +557,7 @@ const Lib = {
   fuel:  { g:'PWR', n:'Паливний елем.',svg: drawBat,   c:'#6ee7b7', s:true,  pins:2, props:{ v:{n:'Напруга (В)',v:1.2,min:0.5,max:5,step:0.1}, p:{n:'Потужність (Вт)',v:50,min:1,max:1000,step:1} } },
   wind:  { g:'PWR', n:'Вітрогенератор',svg: drawWind,  c:'#93c5fd', s:true,  pins:2, props:{ v:{n:'Напруга (В)',v:24,min:1,max:200,step:1}, spd:{n:'Вітер (м/с)',v:10,min:0,max:30,step:1} } },
 
-
+  // ===== ПАСИВНІ (PAS) =====
   res:   { g:'PAS', n:'Резистор',      svg: drawRes,   c:'#94a3b8', pins:2, props:{ r:{n:'Опір (Ом)',v:100,min:0.1,max:10000000,step:1}, p:{n:'Потужність (Вт)',v:0.25,min:0.1,max:100,step:0.1} } },
   res_v: { g:'PAS', n:'Варистор',      svg: drawRes,   c:'#fb7185', pins:2, props:{ r:{n:'Опір (Ом)',v:47,min:1,max:10000,step:1}, v:{n:'Напруга спрац. (В)',v:130,min:1,max:1000,step:1} } },
   pot:   { g:'PAS', n:'Потенціометр',  svg: drawPot,   c:'#c084fc', pins:3, props:{ r:{n:'Повний опір (Ом)',v:10000,min:10,max:1000000,step:10}, pos:{n:'Положення (%)',v:50,min:0,max:100,step:1} } },
@@ -570,7 +676,7 @@ const Lib = {
   sw_2p: { g:'CTRL',n:'Тумблер 2п.',  svg: drawSwi2P, c:'#e2e8f0', pins:6, props:{}, st:false },
   pot2:  { g:'CTRL',n:'Ручний потенц.',svg: drawPot,  c:'#d1d5db', pins:3, props:{ r:{n:'Опір (Ом)',v:10000,min:100,max:1000000,step:100}, pos:{n:'Положення (%)',v:50,min:0,max:100,step:1} } },
   gnd:    { g:'CTRL',n:'Земля (GND)',    svg: drawGND,    c:'#6b7280', pins:1, props:{} },
-  vcc:    { g:'CTRL',n:'Живлення VCC',   svg: drawVCC,    c:'#f59e0b', pins:1, props:{ v:{n:'Напруга (В)',v:5,min:1,max:60,step:0.1} } },
+  vcc:    { g:'CTRL',n:'Живлення VCC',   svg: drawVCC,    c:'#f59e0b', s:true, pins:1, props:{ v:{n:'Напруга (В)',v:5,min:1,max:60,step:0.1} } },
   lipo:   { g:'PWR', n:'LiPo батарея',   svg: drawBat,    c:'#86efac', s:true, pins:2, props:{ v:{n:'Напруга (В)',v:3.7,min:2.7,max:4.2,step:0.01}, cap:{n:'Ємність (мАг)',v:1000,min:100,max:50000,step:100} } },
   buck:   { g:'PWR', n:'Buck DC-DC',     svg: drawBuck,   c:'#a78bfa', pins:4, props:{ vin:{n:'Вхід (В)',v:12,min:1,max:60,step:0.1}, vout:{n:'Вихід (В)',v:5,min:0.5,max:50,step:0.1}, eff:{n:'ККД (%)',v:90,min:50,max:99,step:1} } },
   boost:  { g:'PWR', n:'Boost DC-DC',    svg: drawBuck,   c:'#c084fc', pins:4, props:{ vin:{n:'Вхід (В)',v:3.3,min:0.5,max:30,step:0.1}, vout:{n:'Вихід (В)',v:12,min:1,max:100,step:0.1} } },
@@ -1910,7 +2016,14 @@ let st = {
   oscData: [], frameCount: 0, ctxPart: null,
   clipboard: null,
   snapGrid: 40, showGrid: true,
-  themes: ['dark','light','retro','neon'], themeIdx: 0
+  themes: ['dark','light','retro','neon'], themeIdx: 0,
+  wireType: 'ortho',   // ortho | straight | diag | bus | manual
+  wireColor: 'default',
+  wireMat: 'cu',       // cu | al | ni | ag | w
+  manualPoints: [],    // intermediate waypoints for manual wire
+  manualFrom: null,    // source part for manual wire
+  manualDir: 'H',      // 'H' = horizontal first, 'V' = vertical first
+  mouseWorldMoved: false, // true once finger/mouse has moved after selecting start
 };
 
 const cvs = document.getElementById('mc');
@@ -1934,6 +2047,23 @@ function init() {
   cvs.addEventListener('pointermove', handleMve);
   cvs.addEventListener('pointerup', handleUp);
   cvs.addEventListener('wheel', handleWheel, {passive:false});
+  // Allow mouse wheel to scroll shelf on desktop
+  const invEl2 = document.getElementById('inv');
+  if(invEl2) {
+    invEl2.addEventListener('wheel', e => {
+      e.stopPropagation();
+      invEl2.scrollLeft += e.deltaY * 2;
+      e.preventDefault();
+    }, {passive:false});
+  }
+  const filterBar = document.getElementById('filters');
+  if(filterBar) {
+    filterBar.addEventListener('wheel', e => {
+      e.stopPropagation();
+      filterBar.scrollLeft += e.deltaY * 2;
+      e.preventDefault();
+    }, {passive:false});
+  }
   cvs.addEventListener('contextmenu', handleCtx);
   cvs.addEventListener('touchstart', handleTouch, {passive:false});
   cvs.addEventListener('touchmove', handleTouchMove, {passive:false});
@@ -1967,7 +2097,24 @@ function toWorld(sx, sy) {
 function toScreen(wx, wy) {
   return { x: wx * st.zoom + st.cam.x, y: wy * st.zoom + st.cam.y };
 }
+// Convert clientX/Y → canvas pixel coords → world coords
+// Works correctly on mobile where offsetX/Y can be wrong
+function clientToWorld(cx, cy) {
+  const r = cvs.getBoundingClientRect();
+  const sx = (cx - r.left) * (cvs.width  / r.width);
+  const sy = (cy - r.top)  * (cvs.height / r.height);
+  return toWorld(sx, sy);
+}
 function snapW(v) { return Math.round(v / st.snapGrid) * st.snapGrid; }
+
+// snap to a nearby part centre OR to grid
+function snapToPartOrGrid(wx, wy) {
+  // Same world-space cap: max 28 world units
+  const snapR = Math.min(28 * st.zoom, 50) / st.zoom;
+  const near = st.parts.find(p => Math.hypot(p.x+20 - wx, p.y+20 - wy) < snapR);
+  if(near) return { x: near.x+20, y: near.y+20, snapped: true };
+  return { x: snapW(wx), y: snapW(wy), snapped: false };
+}
 
 // ============================================================
 // ТЕМА
@@ -2015,12 +2162,14 @@ let lastTap=0, pointers=[];
 function handleDwn(e) {
   e.preventDefault();
   hideCtxMenu();
-  const wp = toWorld(e.offsetX, e.offsetY);
-  const found = findPart(wp.x, wp.y);
+  const wp = clientToWorld(e.clientX, e.clientY);
+  st.mouseWorld = wp;  // always sync position on any touch/click
+  // In wire mode use a larger magnet radius so taps always connect
+  const found = (st.m === 'wire') ? findPartMagnet(wp.x, wp.y) : findPart(wp.x, wp.y);
   const now = Date.now();
 
-  // Double-tap to open properties
-  if(now - lastTap < 300 && found) { openEd(found, e.clientX, e.clientY); lastTap=0; return; }
+  // Double-tap to open properties (skip in wire mode — there it causes missed connects)
+  if(now - lastTap < 300 && found && st.m !== 'wire') { openEd(found, e.clientX, e.clientY); lastTap=0; return; }
   lastTap = now;
 
   if(st.m === 'hand') {
@@ -2052,17 +2201,80 @@ function handleDwn(e) {
     }
   }
   if(st.m === 'wire') {
-    if(found) {
-      if(!st.wStart) { st.wStart = found; }
-      else {
-        if(st.wStart !== found) {
-          // Check duplicate
-          const exists = st.wires.some(w=>(w.f===st.wStart&&w.t===found)||(w.f===found&&w.t===st.wStart));
-          if(!exists) st.wires.push({f:st.wStart, t:found, active:false});
+    if(st.wireType === 'manual') {
+      if(found) {
+        if(!st.manualFrom) {
+          st.manualFrom = found;
+          st.manualPoints = [];
+          // Seed mouseWorld so preview starts at component, not old position
+          st.mouseWorld = { x: found.x+20, y: found.y+20 };
+          st.mouseWorldMoved = false;
+          const el=document.getElementById('wire-hint');
+          if(el) el.textContent='Клікай по клітинках → клікни компонент для завершення  |  ESC скасувати';
+        } else if(found !== st.manualFrom) {
+          // Always allow — multiple wires between same pair OK
+          st.wires.push({
+            f: st.manualFrom, t: found, active: false,
+            type: 'manual', color: st.wireColor, mat: st.wireMat,
+            pts: [...st.manualPoints]
+          });
+          st.manualFrom=null; st.manualPoints=[]; st.manualDir='H';
+          updateWireHint(); solve();
+        } else {
+          // Clicked the same start component — cancel drawing
+          st.manualFrom=null; st.manualPoints=[]; st.manualDir='H';
+          updateWireHint();
         }
-        st.wStart = null; solve();
+      } else {
+        // Add orthogonal corner snapped to grid or part
+        if(st.manualFrom) {
+          const snp = snapToPartOrGrid(wp.x, wp.y);
+          const mx = snp.x;
+          const my = snp.y;
+          const last = st.manualPoints.length
+            ? {x: st.manualPoints[st.manualPoints.length-1].x+20, y: st.manualPoints[st.manualPoints.length-1].y+20}
+            : {x: st.manualFrom.x+20, y: st.manualFrom.y+20};
+          // Compute corner based on manualDir: 'H' = go horizontal first, 'V' = go vertical first
+          let cx, cy;
+          if(st.manualDir === 'V') {
+            cx = last.x; cy = my;   // vertical first → corner at (last.x, my)
+          } else {
+            cx = mx; cy = last.y;   // horizontal first → corner at (mx, last.y)
+          }
+          // Only add corner + endpoint if they differ from last
+          if(Math.abs(cx-last.x)>2 || Math.abs(cy-last.y)>2) {
+            st.manualPoints.push({x: cx-20, y: cy-20});
+          }
+          if(Math.abs(mx-cx)>2 || Math.abs(my-cy)>2) {
+            st.manualPoints.push({x: mx-20, y: my-20});
+          }
+        }
       }
-    } else { st.wStart = null; }
+    } else {
+      // Auto modes
+      if(found) {
+        if(!st.wStart) {
+          st.wStart = found;
+          // Seed mouseWorld to component position so preview starts there
+          st.mouseWorld = { x: found.x+20, y: found.y+20 };
+          st.mouseWorldMoved = false; // wait for real move before drawing preview
+        } else {
+          if(st.wStart !== found) {
+            // Allow multiple wires between same pair (different type/color)
+            st.wires.push({
+              f:st.wStart, t:found, active:false,
+              type: st.wireType, color: st.wireColor, mat: st.wireMat, pts:[]
+            });
+            solve();
+          }
+          // always reset — even if same component clicked
+          st.wStart = null;
+        }
+      } else {
+        // clicked empty space — cancel
+        st.wStart = null;
+      }
+    }
   }
 }
 
@@ -2072,8 +2284,10 @@ function handleMve(e) {
     st.cam.y += e.clientY - st.mouse.y;
     st.mouse = {x:e.clientX, y:e.clientY};
   }
-  // Tooltip
-  const wp = toWorld(e.offsetX, e.offsetY);
+  st.mouse = {x:e.clientX, y:e.clientY};
+  const wp = clientToWorld(e.clientX, e.clientY);
+  st.mouseWorld = wp;
+  st.mouseWorldMoved = true;  // only set on actual movement
   const found = findPart(wp.x, wp.y);
   const tt = document.getElementById('tooltip');
   if(found && st.m==='add') {
@@ -2092,7 +2306,9 @@ function handleUp(e) {
 function handleWheel(e) {
   e.preventDefault();
   const factor = e.deltaY > 0 ? 0.9 : 1.1;
-  const px = e.offsetX, py = e.offsetY;
+  const _wr = cvs.getBoundingClientRect();
+  const px = (e.clientX - _wr.left) * (cvs.width  / _wr.width);
+  const py = (e.clientY - _wr.top)  * (cvs.height / _wr.height);
   st.zoom = Math.max(0.2, Math.min(5, st.zoom * factor));
   st.cam.x = px - (px - st.cam.x) * factor;
   st.cam.y = py - (py - st.cam.y) * factor;
@@ -2101,7 +2317,7 @@ function handleWheel(e) {
 
 function handleCtx(e) {
   e.preventDefault();
-  const wp = toWorld(e.offsetX, e.offsetY);
+  const wp = clientToWorld(e.clientX, e.clientY);
   const found = findPart(wp.x, wp.y);
   if(found) {
     st.ctxPart = found;
@@ -2129,7 +2345,12 @@ function handleTouchEnd() { st.pinchDist=0; }
 function handleKey(e) {
   if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
   if(e.key==='Delete'||e.key==='Backspace') { if(st.active) { removePart(st.active); closeEd(); solve(); } }
-  if(e.key==='Escape') { closeEd(); st.wStart=null; }
+  if(e.key==='Escape') { closeEd(); st.wStart=null; st.manualFrom=null; st.manualPoints=[]; st.manualDir='H'; updateWireHint(); }
+  if(e.key==='Tab' && st.m==='wire' && st.wireType==='manual' && st.manualFrom) {
+    e.preventDefault();
+    st.manualDir = st.manualDir==='H' ? 'V' : 'H';
+    updateWireHint();
+  }
   if(e.key==='r'||e.key==='R') { if(st.active) { st.active.rot=(st.active.rot+90)%360; } }
   if(e.key==='d'||e.key==='D') { if(st.active) dupePart(); }
   if(e.key==='1') setM('add');
@@ -2144,15 +2365,37 @@ function handleKey(e) {
 // ============================================================
 // HELPERS
 // ============================================================
-function findPart(wx, wy) {
-  const threshold = 30 / st.zoom;
+function findPart(wx, wy, extraRadius) {
+  // base radius: 30px screen-space; in wire mode use bigger magnet zone
+  const threshold = (extraRadius || 30) / st.zoom;
   return st.parts.find(p => Math.hypot(p.x+20 - wx, p.y+20 - wy) < threshold);
+}
+
+// Find closest part within magnet radius (for wire connect)
+function findPartMagnet(wx, wy) {
+  // World-space radius: max 28px (< 1 grid cell = 40px).
+  // Screen-space cap: min(28*zoom, 50px) so touch always works.
+  const worldR = 28;                              // world units
+  const screenCap = Math.min(worldR * st.zoom, 50); // screen px cap
+  const magnetR = screenCap / st.zoom;            // back to world units
+  let best = null, bestD = Infinity;
+  st.parts.forEach(p => {
+    const d = Math.hypot(p.x+20 - wx, p.y+20 - wy);
+    if(d < magnetR && d < bestD) { bestD = d; best = p; }
+  });
+  return best;
 }
 function findWire(wx, wy) {
   return st.wires.find(w => {
-    const fx=w.f.x+20,fy=w.f.y+20,tx=w.t.x+20,ty=w.t.y+20;
-    const mx=(fx+tx)/2, my=(fy+ty)/2;
-    return Math.hypot(wx-mx,wy-my) < 20/st.zoom;
+    const fx=w.f.x+20, fy=w.f.y+20, tx=w.t.x+20, ty=w.t.y+20;
+    // build point list: f → waypoints → t
+    const pts = [{x:fx,y:fy}, ...(w.pts||[]).map(p=>({x:p.x+20,y:p.y+20})), {x:tx,y:ty}];
+    for(let i=0;i<pts.length-1;i++){
+      const ax=pts[i].x, ay=pts[i].y, bx=pts[i+1].x, by=pts[i+1].y;
+      const mx=(ax+bx)/2, my=(ay+by)/2;
+      if(Math.hypot(wx-mx,wy-my)<20/st.zoom) return true;
+    }
+    return false;
   });
 }
 function placePart(wx, wy) {
@@ -2195,7 +2438,7 @@ function openEd(p, x, y) {
       row.innerHTML=`<label>${pr.n}</label><input type="text" value="${p.vals[k]||pr.v}" oninput="updVal('${k}',this.value)">`;
     } else {
       const val = parseFloat(p.vals[k]||pr.v);
-      row.innerHTML=`<label>${pr.n} <span class="val" id="lv-${k}">${formatVal(val,pr)}</span></label><input type="range" min="${pr.min}" max="${pr.max}" step="${pr.step||1}" value="${val}" oninput="updVal('${k}',this.value)">`;
+      row.innerHTML=`<label>${pr.n} <input class="val-input" id="lv-${k}" type="number" min="${pr.min}" max="${pr.max}" step="${pr.step||1}" value="${val}" title="Натисни щоб ввести значення" oninput="updValDirect('${k}',this.value,${pr.min},${pr.max})" onchange="updValDirect('${k}',this.value,${pr.min},${pr.max})"></label><input type="range" min="${pr.min}" max="${pr.max}" step="${pr.step||1}" value="${val}" id="rng-${k}" oninput="updVal('${k}',this.value)">`;
     }
     fields.appendChild(row);
   });
@@ -2394,8 +2637,26 @@ window.updVal = (k, v) => {
   if(!st.active) return;
   const pr = Lib[st.active.type].props[k];
   st.active.vals[k] = pr&&pr.t!=='color'&&pr.t!=='text' ? parseFloat(v) : v;
+  // sync number input if present
   const lv = document.getElementById('lv-'+k);
-  if(lv && pr&&!pr.t) lv.textContent = formatVal(v, pr);
+  if(lv) {
+    if(lv.tagName === 'INPUT') lv.value = parseFloat(v);
+    else lv.textContent = formatVal(v, pr);
+  }
+  const ci = document.getElementById('calc-info');
+  if(ci) ci.innerHTML = getCalcInfo(st.active);
+  solve(); autoSave();
+};
+
+window.updValDirect = (k, v, mn, mx) => {
+  if(!st.active) return;
+  let num = parseFloat(v);
+  if(isNaN(num)) return;
+  if(mn !== undefined && mn !== '') num = Math.max(parseFloat(mn), num);
+  if(mx !== undefined && mx !== '') num = Math.min(parseFloat(mx), num);
+  st.active.vals[k] = num;
+  const rng = document.getElementById('rng-'+k);
+  if(rng) rng.value = num;
   const ci = document.getElementById('calc-info');
   if(ci) ci.innerHTML = getCalcInfo(st.active);
   solve(); autoSave();
@@ -2456,7 +2717,12 @@ function solve() {
       else totalR+=0.1; // wire/minimal resistance
     });
     if(totalR<0.01) totalR=0.01;
-    const circuitI = srcV / (totalR + parseFloat(src.vals.r||0.1));
+    // Add wire resistance based on material and length
+    const wireR = st.wires.reduce((acc,w)=>{
+      if(!w.f.pwr||!w.t.pwr) return acc;
+      return acc + (typeof getWireResistance==='function' ? getWireResistance(w) : 0);
+    }, 0);
+    const circuitI = srcV / (totalR + wireR + parseFloat(src.vals.r||0.1));
     src.vals._i = circuitI;
     reached.forEach(p=>{ p.vals._i = circuitI; });
   });
@@ -2809,28 +3075,156 @@ function render() {
     for(let y=Math.floor(gy/gs)*gs;y<gy+H/st.zoom;y+=gs){ctx2.beginPath();ctx2.moveTo(gx,y);ctx2.lineTo(gx+W/st.zoom,y);ctx2.stroke();}
   }
 
-  // Wires
-  st.wires.forEach(w=>{
-    const active = st.run && w.active;
-    ctx2.lineWidth = 3/st.zoom;
+  // ── Wire drawing helper ───────────────────────────────────────
+  function drawWirePath(w, active) {
     const fx=w.f.x+20, fy=w.f.y+20, tx=w.t.x+20, ty=w.t.y+20;
-    if(active) {
-      ctx2.shadowBlur=8; ctx2.shadowColor='#00ff88';
-      ctx2.strokeStyle='#00ff88';
-    } else { ctx2.shadowBlur=0; ctx2.strokeStyle='#334155'; }
-    ctx2.beginPath(); ctx2.moveTo(fx,fy); ctx2.lineTo(tx,fy); ctx2.lineTo(tx,ty); ctx2.stroke();
-    // Dot at junction
-    ctx2.fillStyle=active?'#00ff88':'#475569';
-    ctx2.beginPath(); ctx2.arc(tx,fy,3/st.zoom,0,Math.PI*2); ctx2.fill();
-    ctx2.shadowBlur=0;
-  });
+    const wtype = w.type || 'ortho';
+    const mat = (typeof WIRE_MAT!=='undefined') ? (WIRE_MAT[w.mat||'cu']||WIRE_MAT.cu) : {color:'#b87333'};
+    let baseColor = '#334155';
+    if(active) baseColor = '#00ff88';
+    else if(w.color && w.color!=='default') baseColor = w.color;
+    const ww = (wtype==='bus') ? 5/st.zoom : 2.5/st.zoom;
+    if(active){ ctx2.shadowBlur=6; ctx2.shadowColor='#00ff88'; }
+    else ctx2.shadowBlur=0;
+    ctx2.strokeStyle=baseColor; ctx2.lineWidth=ww;
+    ctx2.lineCap='round'; ctx2.lineJoin='round';
+    ctx2.beginPath();
+    if(wtype==='manual' && w.pts && w.pts.length>0) {
+      ctx2.moveTo(fx,fy);
+      w.pts.forEach(p=>ctx2.lineTo(p.x+20,p.y+20));
+      ctx2.lineTo(tx,ty);
+    } else if(wtype==='straight') {
+      ctx2.moveTo(fx,fy); ctx2.lineTo(tx,ty);
+    } else if(wtype==='diag') {
+      const ddx=tx-fx, ddy=ty-fy;
+      const diagLen=Math.min(Math.abs(ddx),Math.abs(ddy));
+      const ssx=ddx>=0?1:-1, ssy=ddy>=0?1:-1;
+      ctx2.moveTo(fx,fy); ctx2.lineTo(fx+ssx*diagLen,fy+ssy*diagLen); ctx2.lineTo(tx,ty);
+    } else if(wtype==='bus') {
+      ctx2.moveTo(fx,fy); ctx2.lineTo(tx,fy); ctx2.lineTo(tx,ty);
+    } else {
+      // Smart auto: choose H→V or V→H based on which is shorter total
+      const dx=Math.abs(tx-fx), dy=Math.abs(ty-fy);
+      if(dx >= dy) {
+        // go horizontal first, then vertical
+        ctx2.moveTo(fx,fy); ctx2.lineTo(tx,fy); ctx2.lineTo(tx,ty);
+      } else {
+        // go vertical first, then horizontal
+        ctx2.moveTo(fx,fy); ctx2.lineTo(fx,ty); ctx2.lineTo(tx,ty);
+      }
+    }
+    ctx2.stroke(); ctx2.shadowBlur=0;
+    // junction dot
+    if(wtype==='ortho'||wtype==='bus') {
+      const _dx=Math.abs(tx-fx), _dy=Math.abs(ty-fy);
+      const jx = _dx>=_dy ? tx : fx;
+      const jy = _dx>=_dy ? fy : ty;
+      ctx2.fillStyle=active?'#00ff88':'#475569';
+      ctx2.beginPath(); ctx2.arc(jx,jy,3/st.zoom,0,Math.PI*2); ctx2.fill();
+    }
+    if(wtype==='diag') {
+      const ddx=tx-fx, ddy=ty-fy;
+      const diagLen=Math.min(Math.abs(ddx),Math.abs(ddy));
+      const ssx=ddx>=0?1:-1, ssy=ddy>=0?1:-1;
+      ctx2.fillStyle=active?'#00ff88':'#475569';
+      ctx2.beginPath(); ctx2.arc(fx+ssx*diagLen,fy+ssy*diagLen,3/st.zoom,0,Math.PI*2); ctx2.fill();
+    }
+    // waypoint dots removed — clean look
+    // material dot removed — shown in hint bar instead
+  }
 
-  // Wire preview
-  if(st.wStart) {
-    ctx2.strokeStyle='#00d4ff'; ctx2.lineWidth=2/st.zoom; ctx2.setLineDash([6/st.zoom,4/st.zoom]);
-    ctx2.beginPath(); ctx2.arc(st.wStart.x+20,st.wStart.y+20,24/st.zoom,0,Math.PI*2); ctx2.stroke();
-    ctx2.setLineDash([]);
-    ctx2.fillStyle='#00d4ff44'; ctx2.beginPath(); ctx2.arc(st.wStart.x+20,st.wStart.y+20,8/st.zoom,0,Math.PI*2); ctx2.fill();
+  // Wires
+  st.wires.forEach(w=>{ drawWirePath(w, st.run&&w.active); });
+
+  // ── Wire preview while drawing ────────────────────────────────
+  const mwx = st.mouseWorld ? st.mouseWorld.x : cvs.width  / 2 / st.zoom;
+  const mwy = st.mouseWorld ? st.mouseWorld.y : cvs.height / 2 / st.zoom;
+  const previewColor = (st.wireColor && st.wireColor!=='default') ? st.wireColor : '#00d4ff';
+
+  if(st.wireType==='manual' && st.manualFrom && st.mouseWorldMoved) {
+    const sx=st.manualFrom.x+20, sy=st.manualFrom.y+20;
+    const _msnp=snapToPartOrGrid(mwx,mwy);
+    const pmx=_msnp.x, pmy=_msnp.y;
+    // Compute corner from last placed point to cursor
+    const lastPt = st.manualPoints.length
+      ? {x: st.manualPoints[st.manualPoints.length-1].x+20, y: st.manualPoints[st.manualPoints.length-1].y+20}
+      : {x: sx, y: sy};
+    const pcx = st.manualDir==='V' ? lastPt.x : pmx;
+    const pcy = st.manualDir==='V' ? pmy : lastPt.y;
+
+    ctx2.strokeStyle=previewColor; ctx2.lineWidth=2/st.zoom;
+    ctx2.setLineDash([5/st.zoom,4/st.zoom]); ctx2.lineCap='round'; ctx2.lineJoin='round';
+    ctx2.beginPath(); ctx2.moveTo(sx,sy);
+    st.manualPoints.forEach(p=>ctx2.lineTo(p.x+20,p.y+20));
+    // Draw orthogonal preview: last → corner → cursor
+    ctx2.lineTo(pcx, pcy);
+    ctx2.lineTo(pmx, pmy);
+    ctx2.stroke(); ctx2.setLineDash([]);
+
+    // Waypoint dots
+    ctx2.fillStyle=previewColor;
+    st.manualPoints.forEach(p=>{ ctx2.beginPath(); ctx2.arc(p.x+20,p.y+20,4/st.zoom,0,Math.PI*2); ctx2.fill(); });
+    // Corner dot
+    ctx2.fillStyle=previewColor+'bb';
+    ctx2.beginPath(); ctx2.arc(pcx,pcy,4/st.zoom,0,Math.PI*2); ctx2.fill();
+    // Cursor dot
+    ctx2.fillStyle=previewColor+'99'; ctx2.beginPath(); ctx2.arc(pmx,pmy,5/st.zoom,0,Math.PI*2); ctx2.fill();
+    // Snap ring when magnetized to a part
+    if(_msnp.snapped) {
+      ctx2.strokeStyle='#00ff88'; ctx2.lineWidth=2/st.zoom;
+      ctx2.setLineDash([3/st.zoom,3/st.zoom]);
+      ctx2.beginPath(); ctx2.arc(pmx,pmy,26/st.zoom,0,Math.PI*2); ctx2.stroke();
+      ctx2.setLineDash([]);
+      ctx2.fillStyle='rgba(0,255,136,0.07)';
+      ctx2.beginPath(); ctx2.arc(pmx,pmy,26/st.zoom,0,Math.PI*2); ctx2.fill();
+    }
+
+    // Source ring
+    ctx2.strokeStyle=previewColor; ctx2.lineWidth=2/st.zoom; ctx2.setLineDash([4/st.zoom,3/st.zoom]);
+    ctx2.beginPath(); ctx2.arc(sx,sy,22/st.zoom,0,Math.PI*2); ctx2.stroke(); ctx2.setLineDash([]);
+
+    // Direction indicator label near cursor
+    ctx2.fillStyle=previewColor; ctx2.font=`bold ${11/st.zoom}px Share Tech Mono`;
+    ctx2.textAlign='left';
+    ctx2.fillText(st.manualDir==='H'?'→H  [Tab=↕V]':'↓V  [Tab=→H]', pmx+8/st.zoom, pmy-6/st.zoom);
+
+  } else if(st.wStart && st.wireType!=='manual' && st.mouseWorldMoved) {
+    const sx=st.wStart.x+20, sy=st.wStart.y+20;
+    ctx2.strokeStyle=previewColor; ctx2.lineWidth=2/st.zoom;
+    ctx2.setLineDash([5/st.zoom,4/st.zoom]); ctx2.lineCap='round'; ctx2.lineJoin='round';
+    ctx2.beginPath();
+    if(st.wireType==='straight') {
+      ctx2.moveTo(sx,sy); ctx2.lineTo(mwx,mwy);
+    } else if(st.wireType==='diag') {
+      const ddx=mwx-sx, ddy=mwy-sy;
+      const diagLen=Math.min(Math.abs(ddx),Math.abs(ddy));
+      const ssx=ddx>=0?1:-1, ssy=ddy>=0?1:-1;
+      ctx2.moveTo(sx,sy); ctx2.lineTo(sx+ssx*diagLen,sy+ssy*diagLen); ctx2.lineTo(mwx,mwy);
+    } else if(st.wireType==='bus') {
+      ctx2.lineWidth=5/st.zoom; ctx2.moveTo(sx,sy); ctx2.lineTo(mwx,sy); ctx2.lineTo(mwx,mwy);
+    } else {
+      // smart auto preview
+      const _pdx=Math.abs(mwx-sx), _pdy=Math.abs(mwy-sy);
+      if(_pdx >= _pdy) {
+        ctx2.moveTo(sx,sy); ctx2.lineTo(mwx,sy); ctx2.lineTo(mwx,mwy);
+      } else {
+        ctx2.moveTo(sx,sy); ctx2.lineTo(sx,mwy); ctx2.lineTo(mwx,mwy);
+      }
+    }
+    ctx2.stroke(); ctx2.setLineDash([]);
+    ctx2.strokeStyle=previewColor; ctx2.lineWidth=2/st.zoom; ctx2.setLineDash([4/st.zoom,3/st.zoom]);
+    ctx2.beginPath(); ctx2.arc(sx,sy,22/st.zoom,0,Math.PI*2); ctx2.stroke(); ctx2.setLineDash([]);
+    ctx2.fillStyle=previewColor+'33'; ctx2.beginPath(); ctx2.arc(sx,sy,8/st.zoom,0,Math.PI*2); ctx2.fill();
+    // Magnet highlight on hovered part (not wStart itself)
+    const _mhov = findPartMagnet(mwx, mwy);
+    if(_mhov && _mhov !== st.wStart) {
+      ctx2.strokeStyle='#00ff88'; ctx2.lineWidth=2/st.zoom;
+      ctx2.setLineDash([3/st.zoom,3/st.zoom]);
+      ctx2.beginPath(); ctx2.arc(_mhov.x+20,_mhov.y+20,26/st.zoom,0,Math.PI*2); ctx2.stroke();
+      ctx2.setLineDash([]);
+      ctx2.fillStyle='rgba(0,255,136,0.07)';
+      ctx2.beginPath(); ctx2.arc(_mhov.x+20,_mhov.y+20,26/st.zoom,0,Math.PI*2); ctx2.fill();
+    }
   }
 
   // Parts
@@ -2896,13 +3290,95 @@ function render() {
 // CONTROLS
 // ============================================================
 function setM(m) {
+  const wasWire = st.m === 'wire';
   st.m=m;
   document.querySelectorAll('.header .btn').forEach(b=>b.classList.remove('active'));
   const mb = document.getElementById('m-'+m);
   if(mb) mb.classList.add('active');
   cvs.className = m==='hand'?'hand-mode':m==='wire'?'wire-mode':'';
-  if(m!=='wire') st.wStart=null;
+  const wp=document.getElementById('wire-picker');
+  if(m!=='wire') {
+    st.wStart=null;
+    st.manualPoints=[]; st.manualFrom=null; st.manualDir='H';
+    if(wp) wp.style.display='none';
+  } else {
+    // повторне натискання ДРІТ — toggle picker
+    if(wasWire && wp) {
+      wp.style.display = (wp.style.display==='none') ? 'flex' : 'none';
+    } else {
+      if(wp) wp.style.display='flex';
+    }
+    updateWireHint();
+  }
   syncMobMode(m);
+}
+
+function setWireType(t) {
+  st.wireType=t;
+  st.wStart=null; st.manualPoints=[]; st.manualFrom=null; st.manualDir='H';
+  document.querySelectorAll('.wp-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('wt-'+t);
+  if(btn) btn.classList.add('active');
+  updateWireHint();
+}
+
+function setWireColor(c) {
+  st.wireColor=c;
+  document.querySelectorAll('.wc-dot').forEach(b=>b.classList.remove('active'));
+  // map color value → element id
+  const map={
+    'default':'wc-default',
+    '#dc2626':'wc-red','#2563eb':'wc-blue','#ca8a04':'wc-yellow',
+    '#16a34a':'wc-green','#ea580c':'wc-orange','#7c3aed':'wc-purple','#94a3b8':'wc-white'
+  };
+  const id=map[c];
+  if(id) document.getElementById(id)?.classList.add('active');
+}
+
+// Wire material data: resistivity relative to copper, display label
+const WIRE_MAT = {
+  cu: { name:'Мідь',      rho:1.00, color:'#b87333' },
+  ag: { name:'Срібло',    rho:0.94, color:'#c0c0c0' },
+  al: { name:'Алюміній',  rho:1.64, color:'#9ca3af' },
+  w:  { name:'Вольфрам',  rho:3.20, color:'#6b7280' },
+  ni: { name:'Нікель',    rho:4.00, color:'#60a5fa' },
+};
+
+function setWireMat(m) {
+  st.wireMat=m;
+  document.querySelectorAll('.wm-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('wm-'+m)?.classList.add('active');
+  const mat=WIRE_MAT[m];
+  updateWireHint();
+}
+
+function updateWireHint() {
+  const el=document.getElementById('wire-hint'); if(!el) return;
+  const mat=WIRE_MAT[st.wireMat||'cu'];
+  const matInfo=`${mat.name} | провідність: ${(1/mat.rho*100).toFixed(0)}% від Cu | R≈${mat.rho.toFixed(2)}×`;
+  const modeHints={
+    ortho:   'Авто: клікни перший компонент → другий → готово',
+    straight:'Клікни компонент → компонент (пряма)',
+    diag:    'Клікни компонент → компонент (45°+горизонталь)',
+    bus:     'Клікни компонент → компонент (шина живлення)',
+    manual:  'Клікни 1й компонент → клікай точки маршруту → клікни 2й | Tab = змінити напрямок H↔V | ESC скасувати',
+  };
+  el.textContent = `${modeHints[st.wireType]||''}  •  ${matInfo}`;
+}
+
+function getWireResistance(w) {
+  // estimate wire resistance: rho_relative × length(px)/40 × 0.001 Ohm per cell
+  const mat = WIRE_MAT[w.mat||'cu'] || WIRE_MAT.cu;
+  const fx=w.f.x+20, fy=w.f.y+20, tx=w.t.x+20, ty=w.t.y+20;
+  let len=0;
+  if(w.pts && w.pts.length>0) {
+    const chain=[{x:fx,y:fy},...w.pts.map(p=>({x:p.x+20,y:p.y+20})),{x:tx,y:ty}];
+    for(let i=0;i<chain.length-1;i++) len+=Math.hypot(chain[i+1].x-chain[i].x,chain[i+1].y-chain[i].y);
+  } else {
+    len=Math.abs(tx-fx)+Math.abs(ty-fy);
+  }
+  const cells=len/40;
+  return mat.rho * cells * 0.002; // Ohm
 }
 function selectC(k) { st.sel=k; filterInv(Lib[k].g); setM('add'); }
 function toggleSim() {
@@ -2925,16 +3401,19 @@ function clearAll() {
 // SAVE / LOAD
 // ============================================================
 function autoSave() {
-  try { localStorage.setItem('electrolab_scheme', JSON.stringify({parts:st.parts,wires:st.wires.map(w=>({fi:w.f.id,ti:w.t.id}))})); } catch(e){}
+  try { localStorage.setItem('electrolab_scheme', JSON.stringify({parts:st.parts,wires:st.wires.map(w=>({fi:w.f.id, ti:w.t.id, type:w.type||'ortho', color:w.color||null, mat:w.mat||'cu', pts:w.pts||[]}))})); } catch(e){}
 }
 function loadFromLS() {
   try {
     const d=JSON.parse(localStorage.getItem('electrolab_scheme')||'{}');
-    if(d.parts) { st.parts=d.parts; if(d.wires) { st.wires=d.wires.map(w=>{const f=st.parts.find(p=>p.id===w.fi),t=st.parts.find(p=>p.id===w.ti); return f&&t?{f,t,active:false}:null;}).filter(Boolean); } updateInfo(); }
+    if(d.parts) { st.parts=d.parts; if(d.wires) { st.wires=d.wires.map(w=>{
+        const f=st.parts.find(p=>p.id===w.fi),t=st.parts.find(p=>p.id===w.ti);
+        return f&&t?{f,t,active:false,type:w.type||'ortho',color:w.color||null,mat:w.mat||'cu',pts:w.pts||[]}:null;
+      }).filter(Boolean); } updateInfo(); }
   } catch(e){}
 }
 function saveScheme() {
-  const d=JSON.stringify({parts:st.parts,wires:st.wires.map(w=>({fi:w.f.id,ti:w.t.id}))},null,2);
+  const d=JSON.stringify({parts:st.parts,wires:st.wires.map(w=>({fi:w.f.id, ti:w.t.id, type:w.type||'ortho', color:w.color||null, mat:w.mat||'cu', pts:w.pts||[]}))},null,2);
   const a=document.createElement('a'); a.href='data:text/json,'+encodeURIComponent(d); a.download='scheme.json'; a.click();
 }
 function loadScheme() { document.getElementById('load-file').click(); }
@@ -3003,7 +3482,7 @@ function initMobileEvents() {
     vp.addEventListener('pointerdown', e => {
       if(isMobile()) {
         longTimer = setTimeout(() => {
-          const wp = toWorld(e.offsetX, e.offsetY);
+          const wp = clientToWorld(e.clientX, e.clientY);
           const found = findPart(wp.x, wp.y);
           if(found) {
             st.ctxPart = found;
@@ -3029,7 +3508,9 @@ function updateMobLang() {
 window.toggleMobMore = toggleMobMore;
 window.closeMobMore = closeMobMore;
 
-
+// ============================================================
+// i18n ЛОКАЛІЗАЦІЯ
+// ============================================================
 const LANGS = {
   uk: {
     obj:"ОБ'ЄКТ",wire:"ДРІТ",hand:"РУКА",del:"ВИДАЛ",
@@ -3117,7 +3598,9 @@ function cycleLang() {
   updateMobLang();
 }
 
-
+// ============================================================
+// МУЛЬТИМЕТР
+// ============================================================
 const mm = {
   mode: 'V',       // 'V' | 'A' | 'O' | 'Hz'
   acMode: false,
@@ -3275,7 +3758,7 @@ function doMMRead() {
 
   const plusPart  = mm.plus  || null;
   const minusPart = mm.minus || null;
-
+  // The "target" part is whichever probe is connected (prefer plus)
   const target = plusPart || minusPart;
 
   // ── Universal voltage getter ──────────────────────────────────
@@ -3538,6 +4021,9 @@ window.connectProbe=connectProbe;
 window.doMMRead=doMMRead;
 window.cycleLang=cycleLang;
 window.applyLang=applyLang;
+window.setWireType=setWireType;
+window.setWireColor=setWireColor;
+window.setWireMat=setWireMat;
 
 init();
 </script>
