@@ -333,6 +333,7 @@ canvas#mc  { display:block; width:100%; height:100%; }
     <div class="btn" onclick="saveScheme()">💾</div>
     <div class="btn" onclick="loadScheme()">📂</div>
     <div class="btn" onclick="exportPCB()" title="Експорт у PCB (SVG)">🖥 <span class="btn-text">PCB</span></div>
+    <div class="btn" onclick="autoPCBLayout()" title="Авторозкладка компонентів для PCB" style="border-color:#7c3aed;color:#a78bfa;">⬡ <span class="btn-text">→PCB</span></div>
     <input type="file" id="load-file" accept=".json" style="display:none" onchange="doLoad(event)">
   </div>
   <div class="hgroup">
@@ -4235,9 +4236,28 @@ function loadFromLS() {
   } catch(e){}
 }
 function saveScheme() {
-  const d=JSON.stringify({parts:st.parts,wires:st.wires.map(w=>({fi:w.f.id, ti:w.t.id, type:w.type||'ortho', color:w.color||null, mat:w.mat||'cu', pts:w.pts||[]}))},null,2);
-  const a=document.createElement('a'); a.href='data:text/json,'+encodeURIComponent(d); a.download='scheme.json';
+  // Collect custom component definitions used in this scheme
+  const usedCustomTypes = [...new Set(st.parts.map(p=>p.type).filter(t=>Lib[t]?._custom))];
+  const allSaved = loadMyComponents();
+  const customComponents = {};
+  usedCustomTypes.forEach(t => { if(allSaved[t]) customComponents[t] = allSaved[t]; });
+
+  const d = JSON.stringify({
+    parts: st.parts,
+    wires: st.wires.map(w=>({fi:w.f.id, ti:w.t.id, type:w.type||'ortho', color:w.color||null, mat:w.mat||'cu', pts:w.pts||[]})),
+    customComponents,  // ← embedded custom component definitions
+    _version: 2,
+    _app: 'tECHLAB'
+  }, null, 2);
+
+  const a = document.createElement('a');
+  a.href = 'data:text/json,' + encodeURIComponent(d);
+  a.download = 'scheme.json';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
+
+  // Toast hint if custom comps were packed
+  if(usedCustomTypes.length > 0)
+    _showToast(`💾 Збережено разом з ${usedCustomTypes.length} кастомним(и) компонентами`);
 }
 function loadScheme() { document.getElementById('load-file').click(); }
 
@@ -4254,6 +4274,132 @@ const PCB_PRESETS = {
   white:  { bg:'#e8e8e8', bgLight:'#f0f0f0', bgGrid:'#d0d0d0', silk:'#202020', border:'#404040', name:'Білий' },
   purple: { bg:'#1a0d3a', bgLight:'#231050', bgGrid:'#140a2a', silk:'#e0d0ff', border:'#7050c0', name:'Фіолетовий' },
 };
+
+// ============================================================
+// AUTO PCB LAYOUT — трансформує схему в PCB-розкладку
+// ============================================================
+function autoPCBLayout() {
+  if(st.parts.length === 0) { alert('Схема порожня'); return; }
+
+  const CELL_W = 130; // horizontal cell size px
+  const CELL_H = 120; // vertical cell size px
+  const MARGIN  = 80; // board margin
+  const SNAP    = 40; // grid snap
+
+  // ── 1. Build adjacency + degree map ─────────────────────────
+  const adj = new Map();
+  const degree = new Map();
+  st.parts.forEach(p => { adj.set(p.id, new Set()); degree.set(p.id, 0); });
+  st.wires.forEach(w => {
+    adj.get(w.f.id)?.add(w.t.id);
+    adj.get(w.t.id)?.add(w.f.id);
+    degree.set(w.f.id, (degree.get(w.f.id)||0)+1);
+    degree.set(w.t.id, (degree.get(w.t.id)||0)+1);
+  });
+  const partById = new Map(st.parts.map(p=>[p.id, p]));
+
+  // ── 2. BFS-order traversal starting from highest-degree node ─
+  // This produces a natural "chain" order that respects connections
+  const placed = new Set();
+  const order  = []; // final placement order
+
+  // Sort seeds by degree desc so most-connected come first
+  const seeds = [...st.parts].sort((a,b)=>(degree.get(b.id)||0)-(degree.get(a.id)||0));
+
+  seeds.forEach(seed => {
+    if(placed.has(seed.id)) return;
+    const q = [seed.id];
+    while(q.length) {
+      const id = q.shift();
+      if(placed.has(id)) continue;
+      placed.add(id);
+      order.push(id);
+      // Push neighbours sorted by degree desc so highly-connected neighbours come next
+      const nbrs = [...(adj.get(id)||[])].filter(n=>!placed.has(n))
+                    .sort((a,b)=>(degree.get(b)||0)-(degree.get(a)||0));
+      nbrs.forEach(n => q.push(n));
+    }
+  });
+
+  // ── 3. Pure grid placement — no physics, no drift ───────────
+  // Determine grid width: sqrt of total, bias slightly wide
+  const total = order.length;
+  const cols  = Math.max(1, Math.ceil(Math.sqrt(total * 1.2)));
+
+  // Place in BFS order left→right, top→bottom on grid
+  const grid = new Map(); // id → {col, row}
+  order.forEach((id, idx) => {
+    grid.set(id, { col: idx % cols, row: Math.floor(idx / cols) });
+  });
+
+  // ── 4. Swap pass — reduce wire crossing by greedy swaps ──────
+  // For each pair of adjacent (in grid) placed parts, try swapping
+  // and keep swap if it reduces total manhattan wire length
+  function totalWireLen(gridState) {
+    let len = 0;
+    st.wires.forEach(w => {
+      const a = gridState.get(w.f.id), b = gridState.get(w.t.id);
+      if(a && b) len += Math.abs(a.col-b.col) + Math.abs(a.row-b.row);
+    });
+    return len;
+  }
+
+  // Do up to 3 passes of greedy pair-swaps
+  for(let pass = 0; pass < 3; pass++) {
+    let improved = false;
+    for(let i = 0; i < order.length; i++) {
+      for(let j = i+1; j < order.length; j++) {
+        const idA = order[i], idB = order[j];
+        const posA = grid.get(idA), posB = grid.get(idB);
+        const before = totalWireLen(grid);
+        // Try swap
+        grid.set(idA, posB); grid.set(idB, posA);
+        const after = totalWireLen(grid);
+        if(after < before) {
+          improved = true; // keep swap
+        } else {
+          // Revert
+          grid.set(idA, posA); grid.set(idB, posB);
+        }
+      }
+    }
+    if(!improved) break;
+  }
+
+  // ── 5. Apply positions — guaranteed on-canvas, snapped ──────
+  order.forEach(id => {
+    const p = partById.get(id);
+    const g = grid.get(id);
+    if(!p || !g) return;
+    p.x = Math.round((MARGIN + g.col * CELL_W) / SNAP) * SNAP;
+    p.y = Math.round((MARGIN + g.row * CELL_H) / SNAP) * SNAP;
+  });
+
+  // ── 6. Fit camera to result ──────────────────────────────────
+  const allX = st.parts.map(p=>p.x), allY = st.parts.map(p=>p.y);
+  const bW = Math.max(...allX) - Math.min(...allX) + 160;
+  const bH = Math.max(...allY) - Math.min(...allY) + 160;
+  const vp = document.getElementById('viewport');
+  const vpW = vp ? vp.clientWidth : 800;
+  const vpH = vp ? vp.clientHeight : 500;
+  st.zoom = Math.min(1.2, Math.max(0.35, Math.min(vpW/bW, vpH/bH) * 0.85));
+  st.cam  = { x: (vpW - bW*st.zoom)/2, y: (vpH - bH*st.zoom)/2 };
+
+  autoSave();
+  _showToast(`✓ PCB розкладка: ${cols} стовп. × ${Math.ceil(total/cols)} ряд.`);
+}
+
+function _showToast(msg) {
+  const t2=document.createElement('div');
+  t2.style.cssText=`position:fixed;bottom:200px;left:50%;transform:translateX(-50%);
+    background:#00ff88;color:#000;padding:10px 22px;border-radius:10px;
+    font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
+    z-index:99999;box-shadow:0 4px 20px rgba(0,255,136,0.4);pointer-events:none;`;
+  t2.textContent=msg;
+  document.body.appendChild(t2);
+  setTimeout(()=>{t2.style.transition='opacity .5s';t2.style.opacity='0';setTimeout(()=>t2.remove(),500);},2200);
+}
+window.autoPCBLayout=autoPCBLayout;
 
 function showPCBDialog() {
   if(st.parts.length===0 && st.wires.length===0) {
@@ -4385,6 +4531,19 @@ function showPCBDialog() {
 
       <div style="display:flex;gap:8px;margin-top:4px;">
         <button onclick="
+          document.getElementById('pcb-dialog').remove();
+          autoPCBLayout();
+          setTimeout(()=>showPCBDialog(), 400);
+        " style="
+          height:44px; padding:0 12px; background:#1a0a3a; border:2px solid #7c3aed;
+          color:#a78bfa; border-radius:10px; font-family:'Rajdhani',sans-serif;
+          font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;
+          transition:all .15s;
+          " onmouseover="this.style.background='#7c3aed';this.style.color='#fff';"
+            onmouseout="this.style.background='#1a0a3a';this.style.color='#a78bfa';">
+          ⬡ АВТОРОЗКЛАДКА
+        </button>
+        <button onclick="
           const preset = window._pcbPreset || 'green';
           const fmt = window._pcbFmt || 'svg';
           const tw = window._pcbTraceW || 3;
@@ -4408,7 +4567,11 @@ function showPCBDialog() {
           height:44px; padding:0 16px; background:#1e2a3a; border:1px solid #1e3a5f;
           color:#4a7a99; border-radius:10px; font-family:'Rajdhani',sans-serif;
           font-weight:700; font-size:13px; cursor:pointer;
-        ">Скасувати</button>
+        ">✕</button>
+      </div>
+      <div style="margin-top:10px;padding:8px 10px;background:#060e1a;border-radius:8px;border:1px solid #0d2030;font-size:9px;color:#2a5a7a;font-family:'Share Tech Mono',monospace;line-height:1.6;">
+        💡 <b style="color:#3a7a9a;">АВТОРОЗКЛАДКА</b> — розкладає компоненти оптимально для PCB.<br>
+        Треки в SVG/PNG ідуть від реальних падів компонентів.
       </div>
     </div>
   `;
@@ -4693,10 +4856,68 @@ function exportPCB_ORIGINAL_UNUSED(presetKey) {
 <!-- LAYER: Copper traces (F.Cu) -->
 <g id="copper-traces" filter="url(#traceGlow)">`;
 
-  // Wires → PCB traces
+  // ── PCB padMap for artwork mode (same geometry as PSB padMap below) ──────
+  const _artPadMap = new Map();
+  st.parts.forEach(p => {
+    const t=p.type, cx0=p.x+20, cy0=p.y+20;
+    const isBT=t==='bat'||t.startsWith('bat')||t==='lipo'||t==='fuel'||t==='ac'||t==='dc_adj'||t==='sol'||t==='wind'||t==='vcc';
+    let pds=[];
+    if(t==='res'||t==='res_v'||t==='ntc'||t==='ptc'||t==='ldr') pds=[{sx:cx0-19,sy:cy0},{sx:cx0+19,sy:cy0}];
+    else if(t==='pot'||t==='pot2') pds=[{sx:cx0-16,sy:cy0+6},{sx:cx0,sy:cy0+6},{sx:cx0+16,sy:cy0+6}];
+    else if(t==='cap'||t==='cap_t') pds=[{sx:cx0-11,sy:cy0},{sx:cx0+11,sy:cy0}];
+    else if(t==='cap_e') pds=[{sx:cx0+7,sy:cy0},{sx:cx0-7,sy:cy0}];
+    else if(t==='ind'||t==='ind_c') pds=[{sx:cx0-19,sy:cy0},{sx:cx0+19,sy:cy0}];
+    else if(t==='led'||t.startsWith('led_')) pds=[{sx:cx0-7,sy:cy0+18},{sx:cx0+7,sy:cy0+18}];
+    else if(t==='dio'||t==='schottky'||t==='zener') pds=[{sx:cx0-14,sy:cy0},{sx:cx0+14,sy:cy0}];
+    else if(t==='npn'||t==='pnp'||t==='nmos'||t==='pmos'||t==='igbt'||t==='scr'||t==='triac'||t==='photo')
+      pds=[{sx:cx0-13,sy:cy0},{sx:cx0,sy:cy0+22},{sx:cx0+13,sy:cy0}];
+    else if(t==='relay') pds=[{sx:cx0-22,sy:cy0-8},{sx:cx0-22,sy:cy0+8},{sx:cx0+22,sy:cy0-12},{sx:cx0+22,sy:cy0},{sx:cx0+22,sy:cy0+12}];
+    else if(t==='swi'||t==='swi_n'||t==='btn'||t==='sw_2p') pds=[
+      {sx:cx0-9,sy:cy0-9},{sx:cx0+9,sy:cy0-9},  // pins 1,2 (top pair — internally connected)
+      {sx:cx0-9,sy:cy0+9},{sx:cx0+9,sy:cy0+9}   // pins 3,4 (bottom pair — connected when pressed)
+    ];
+    else if(t==='fuse'||t==='cb'||t==='crystal') pds=[{sx:cx0-17,sy:cy0},{sx:cx0+17,sy:cy0}];
+    else if(t==='trans') pds=[{sx:cx0-22,sy:cy0-9},{sx:cx0-22,sy:cy0+9},{sx:cx0+22,sy:cy0-9},{sx:cx0+22,sy:cy0+9}];
+    else if(isBT) pds=[{sx:cx0-8,sy:cy0},{sx:cx0+8,sy:cy0}];
+    else pds=[{sx:cx0-16,sy:cy0},{sx:cx0+16,sy:cy0}];
+    _artPadMap.set(p, pds);
+  });
+  const _artPadUsed = new Map();
+  st.parts.forEach(p => _artPadUsed.set(p.id, new Set()));
+
+  const _artAssignPad = (part, tsx, tsy) => {
+    const pads = _artPadMap.get(part);
+    if(!pads||!pads.length) return {sx:part.x+20, sy:part.y+20};
+    const used = _artPadUsed.get(part.id) || new Set();
+    let bestFree=null, bestFreeDist=Infinity, bestAny=null, bestAnyDist=Infinity;
+    pads.forEach((pd,i)=>{
+      const d=(pd.sx-tsx)**2+(pd.sy-tsy)**2;
+      if(d<bestAnyDist){bestAny={sx:pd.sx,sy:pd.sy,i};bestAnyDist=d;}
+      if(!used.has(i)&&d<bestFreeDist){bestFree={sx:pd.sx,sy:pd.sy,i};bestFreeDist=d;}
+    });
+    const chosen=bestFree||bestAny;
+    if(chosen) used.add(chosen.i);
+    return chosen||{sx:part.x+20,sy:part.y+20};
+  };
+
+  // Pre-sort wires (shorter first) so nearby connections get priority
+  const _artWiresSorted = [...st.wires].sort((a,b)=>
+    Math.hypot(a.f.x-a.t.x,a.f.y-a.t.y)-Math.hypot(b.f.x-b.t.x,b.f.y-b.t.y));
+  const _artWireAssign = new Map();
+  _artWiresSorted.forEach(w=>{
+    _artWireAssign.set(w,{
+      fp:_artAssignPad(w.f, w.t.x+20, w.t.y+20),
+      tp:_artAssignPad(w.t, w.f.x+20, w.f.y+20)
+    });
+  });
+
+  // Wires → PCB traces (pad-to-pad routing)
   st.wires.forEach(w=>{
-    const fx=ox(w.f.x+20), fy=oy(w.f.y+20);
-    const tx=ox(w.t.x+20), ty=oy(w.t.y+20);
+    const assign = _artWireAssign.get(w);
+    const fp = assign ? assign.fp : {sx:w.f.x+20, sy:w.f.y+20};
+    const tp = assign ? assign.tp : {sx:w.t.x+20, sy:w.t.y+20};
+    const fx=ox(fp.sx), fy=oy(fp.sy);
+    const tx=ox(tp.sx), ty=oy(tp.sy);
     const isBus = w.type==='bus';
     const ww = isBus ? 5.5 : 3.0;
     const wColor = isBus ? '#e0a830' : PCB_COPPER;
@@ -4715,6 +4936,7 @@ function exportPCB_ORIGINAL_UNUSED(presetKey) {
       const sx2=ddx>=0?1:-1, sy2=ddy>=0?1:-1;
       d = `M${fx},${fy} L${fx+sx2*diagLen},${fy+sy2*diagLen} L${tx},${ty}`;
     } else {
+      // ortho: always go from pad position with right-angle routing
       const pdx=Math.abs(tx-fx), pdy=Math.abs(ty-fy);
       if(pdx>=pdy) d=`M${fx},${fy} L${tx},${fy} L${tx},${ty}`;
       else          d=`M${fx},${fy} L${fx},${ty} L${tx},${ty}`;
@@ -4727,11 +4949,11 @@ function exportPCB_ORIGINAL_UNUSED(presetKey) {
     // Highlight stripe on top
     svg += `<path d="${d}" fill="none" stroke="${wColorLight}" stroke-width="${ww*0.3}" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/>`;
 
-    // Via pads at endpoints
-    svg += `<circle cx="${fx}" cy="${fy}" r="5" fill="${PCB_VIA}" stroke="${PCB_COPPER}" stroke-width="1"/>`;
-    svg += `<circle cx="${fx}" cy="${fy}" r="2.2" fill="${PCB_HOLE}"/>`;
-    svg += `<circle cx="${tx}" cy="${ty}" r="5" fill="${PCB_VIA}" stroke="${PCB_COPPER}" stroke-width="1"/>`;
-    svg += `<circle cx="${tx}" cy="${ty}" r="2.2" fill="${PCB_HOLE}"/>`;
+    // Annular via rings at trace endpoints (drawn behind components)
+    svg += `<circle cx="${fx}" cy="${fy}" r="5.5" fill="${PCB_VIA}" stroke="${PCB_COPPER}" stroke-width="1.2"/>`;
+    svg += `<circle cx="${fx}" cy="${fy}" r="2.3" fill="${PCB_HOLE}"/>`;
+    svg += `<circle cx="${tx}" cy="${ty}" r="5.5" fill="${PCB_VIA}" stroke="${PCB_COPPER}" stroke-width="1.2"/>`;
+    svg += `<circle cx="${tx}" cy="${ty}" r="2.3" fill="${PCB_HOLE}"/>`;
   });
 
   svg += `</g>\n\n<!-- LAYER: Components (F.Cu pads + F.Silkscreen) -->\n<g id="components">`;
@@ -5450,16 +5672,44 @@ function _buildPCBSVGString(presetKey, traceW, busW, mode, holeRoverride) {
     }
     padMap.set(p, pads);
   });
-  // Helper: find nearest pad of a part toward a target point (scheme units)
-  // Uses the other endpoint as hint to pick the right pad on multi-pad parts
-  const nearestPad=(part, targetSx, targetSy)=>{
-    const pads=padMap.get(part);
-    if(!pads||!pads.length) return {sx:part.x+20,sy:part.y+20};
-    return pads.reduce((b,pd)=>{
-      const d=(pd.sx-targetSx)**2+(pd.sy-targetSy)**2;
-      return d<b.d?{sx:pd.sx,sy:pd.sy,d}:b;
-    },{sx:pads[0].sx,sy:pads[0].sy,d:Infinity});
+  // ── Pad assignment: each pad used by at most one trace ───────
+  // We pre-assign wires to pads using a greedy matching:
+  // sort wires by distance to nearest pad, assign best-fit first,
+  // mark pad as used so next wire picks a different pad.
+  // padUsed: Map<partId, Set<padIndex>>
+  const padUsed = new Map();
+  st.parts.forEach(p => padUsed.set(p.id, new Set()));
+
+  // Returns {sx,sy} — picks nearest FREE pad; falls back to nearest if all used
+  const assignPad = (part, targetSx, targetSy) => {
+    const pads = padMap.get(part);
+    if(!pads||!pads.length) return {sx:part.x+20, sy:part.y+20};
+    const used = padUsed.get(part.id) || new Set();
+    let bestFree = null, bestFreeDist = Infinity;
+    let bestAny  = null, bestAnyDist  = Infinity;
+    pads.forEach((pd, i) => {
+      const d = (pd.sx-targetSx)**2 + (pd.sy-targetSy)**2;
+      if(d < bestAnyDist) { bestAny = {sx:pd.sx,sy:pd.sy,i}; bestAnyDist = d; }
+      if(!used.has(i) && d < bestFreeDist) { bestFree = {sx:pd.sx,sy:pd.sy,i}; bestFreeDist = d; }
+    });
+    const chosen = bestFree || bestAny;
+    if(chosen) used.add(chosen.i);
+    return chosen || {sx:part.x+20, sy:part.y+20};
   };
+
+  // Pre-sort wires so shorter (closer) connections get priority in pad assignment
+  const wiresSorted = [...st.wires].sort((a,b)=>{
+    const da = Math.hypot(a.f.x-a.t.x, a.f.y-a.t.y);
+    const db = Math.hypot(b.f.x-b.t.x, b.f.y-b.t.y);
+    return da - db;
+  });
+  // Build assignment map: wire → {fp, tp}
+  const wireAssign = new Map();
+  wiresSorted.forEach(w => {
+    const fp = assignPad(w.f, w.t.x+20, w.t.y+20);
+    const tp = assignPad(w.t, w.f.x+20, w.f.y+20);
+    wireAssign.set(w, {fp, tp});
+  });
 
   let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
 <defs>
@@ -5483,25 +5733,38 @@ ${isPSB?'':`<rect width="${W}" height="${H}" fill="url(#pcbgrid)"/><rect width="
   const _bw = Math.max(2, parseFloat(busW) || 5);
 
   st.wires.forEach(w=>{
-    // Each wire end snaps to the pad of its part nearest to the OTHER part
-    const fp = nearestPad(w.f, w.t.x+20, w.t.y+20);
-    const tp = nearestPad(w.t, w.f.x+20, w.f.y+20);
+    // Use pre-assigned pads (each pad used by at most one trace)
+    const assign = wireAssign.get(w);
+    const fp = assign ? assign.fp : {sx:w.f.x+20, sy:w.f.y+20};
+    const tp = assign ? assign.tp : {sx:w.t.x+20, sy:w.t.y+20};
     const fx=ox(fp.sx), fy=oy(fp.sy);
     const tx=ox(tp.sx), ty=oy(tp.sy);
     const isBus=w.type==='bus';
     const ww=isBus?_bw:_tw;
-    const wColor = isPSB ? '#000000' : (isBus?'#e0a830':PCB_COPPER);
+    // PSB uses copper color (or black if invertBW), PCB uses warm copper tones
+    const wColor = isBus ? (isPSB?PCB_COPPER:'#e0a830') : PCB_COPPER;
     const wColorLight = isPSB ? null : (isBus?'#f0c050':PCB_COPPER_LIGHT);
     let d='';
     if(w.type==='manual'&&w.pts?.length>0){
       d=`M${fx},${fy}`; w.pts.forEach(pt=>{d+=` L${ox(pt.x+20)},${oy(pt.y+20)}`;}); d+=` L${tx},${ty}`;
     } else if(w.type==='straight'){ d=`M${fx},${fy} L${tx},${ty}`; }
     else if(w.type==='diag'){const ddx=tx-fx,ddy=ty-fy,dl=Math.min(Math.abs(ddx),Math.abs(ddy)),sx=ddx>=0?1:-1,sy=ddy>=0?1:-1;d=`M${fx},${fy} L${fx+sx*dl},${fy+sy*dl} L${tx},${ty}`;}
-    else{const pdx=Math.abs(tx-fx),pdy=Math.abs(ty-fy);if(pdx>=pdy)d=`M${fx},${fy} L${tx},${fy} L${tx},${ty}`;else d=`M${fx},${fy} L${fx},${ty} L${tx},${ty}`;}
+    else{
+      // Ortho routing: pick direction that connects best to pad orientation
+      const pdx=Math.abs(tx-fx),pdy=Math.abs(ty-fy);
+      if(pdx>=pdy)d=`M${fx},${fy} L${tx},${fy} L${tx},${ty}`;
+      else d=`M${fx},${fy} L${fx},${ty} L${tx},${ty}`;
+    }
     if(!isPSB) svg+=`<path d="${d}" fill="none" stroke="#000" stroke-width="${ww+3}" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>`;
     svg+=`<path d="${d}" fill="none" stroke="${wColor}" stroke-width="${ww}" stroke-linecap="round" stroke-linejoin="round"/>`;
     if(!isPSB && wColorLight) svg+=`<path d="${d}" fill="none" stroke="${wColorLight}" stroke-width="${ww*0.3}" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/>`;
-    // no endpoint vias in footprint mode — they overlap component pads
+    // Annular via rings at trace-to-pad connection points
+    const viaR = isPSB ? 5.5 : 5;
+    const holeR2 = isPSB ? 2.1 : 2.2;
+    svg += `<circle cx="${fx}" cy="${fy}" r="${viaR}" fill="${PCB_VIA}" stroke="${PCB_COPPER}" stroke-width="1"/>`;
+    svg += `<circle cx="${fx}" cy="${fy}" r="${holeR2}" fill="${PCB_HOLE}"/>`;
+    svg += `<circle cx="${tx}" cy="${ty}" r="${viaR}" fill="${PCB_VIA}" stroke="${PCB_COPPER}" stroke-width="1"/>`;
+    svg += `<circle cx="${tx}" cy="${ty}" r="${holeR2}" fill="${PCB_HOLE}"/>`;
   });
 
   svg+=`</g>\n<g id="components">`;
@@ -5526,11 +5789,53 @@ window._exportPCBSVG = (preset, tw, bw, mode, hr) => _realExportPCB(preset, tw, 
 window.exportPCB = showPCBDialog;   // button calls dialog first
 
 function doLoad(e) {
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=ev=>{
-    try { const d=JSON.parse(ev.target.result); st.parts=d.parts||[]; st.wires=(d.wires||[]).map(w=>{const f=st.parts.find(p=>p.id===w.fi),t=st.parts.find(p=>p.id===w.ti); return f&&t?{f,t,active:false}:null;}).filter(Boolean); updateInfo(); } catch(err){alert('Помилка завантаження');}
-  }; r.readAsText(f);
+  const f = e.target.files[0]; if(!f) return;
+  // Reset file input so same file can be re-loaded
+  e.target.value = '';
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+
+      // ── 1. Restore embedded custom components ────────────────
+      let importedCustom = 0;
+      if(d.customComponents && typeof d.customComponents === 'object') {
+        const saved = loadMyComponents();
+        Object.entries(d.customComponents).forEach(([k, def]) => {
+          if(!def || !def._custom) return;
+          // Register in Lib (with draw function restored)
+          Lib[k] = { ...def, svg: drawCustomComp };
+          // Persist to localStorage so they survive page refresh
+          if(!saved[k]) {
+            saved[k] = { ...def, svg: '__custom__' };
+            importedCustom++;
+          }
+        });
+        if(importedCustom > 0) saveMyComponents(saved);
+      }
+
+      // ── 2. Load parts & wires ────────────────────────────────
+      st.parts = d.parts || [];
+      st.wires = (d.wires || []).map(w => {
+        const fPart = st.parts.find(p => p.id === w.fi);
+        const tPart = st.parts.find(p => p.id === w.ti);
+        return fPart && tPart
+          ? { f:fPart, t:tPart, active:false, type:w.type||'ortho',
+              color:w.color||null, mat:w.mat||'cu', pts:w.pts||[] }
+          : null;
+      }).filter(Boolean);
+
+      updateInfo();
+      filterInv('ALL');
+      solve();
+
+      // ── 3. Notify user ────────────────────────────────────────
+      if(importedCustom > 0)
+        _showToast(`✓ Завантажено + ${importedCustom} нових компонентів у ⭐МОЇ`);
+
+    } catch(err) { alert('Помилка завантаження: ' + err.message); }
+  };
+  r.readAsText(f);
 }
 
 
